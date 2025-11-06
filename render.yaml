@@ -3,7 +3,7 @@ services:
     name: emitrr-4-in-a-row
     env: node
     plan: free
-    buildCommand: npm run setup
+    buildCommand: cd backend && npm install && cd ../frontend && npm install && npm run build
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
