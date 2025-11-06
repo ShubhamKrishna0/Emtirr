@@ -16,7 +16,11 @@ function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
+    let reconnectTimer = null;
+    
     const connectWebSocket = () => {
+      if (socket && socket.readyState === WebSocket.OPEN) return;
+      
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
       
@@ -24,27 +28,45 @@ function App() {
     
     socket.onopen = () => {
       setIsConnected(true);
-      console.log('WebSocket connected successfully');
-    };
-    
-    socket.onclose = (event) => {
-      setIsConnected(false);
-      console.log('WebSocket disconnected:', event.code);
-      
-      // Reconnect immediately if game is active
-      if (gameStatus === 'playing' || gameStatus === 'waiting') {
-        setTimeout(connectWebSocket, 1000);
+      console.log('WebSocket connected');
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
       }
     };
     
-    socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
+    socket.onclose = () => {
+      setIsConnected(false);
+      console.log('WebSocket closed');
+      
+      // Always try to reconnect
+      if (!reconnectTimer) {
+        reconnectTimer = setTimeout(() => {
+          reconnectTimer = null;
+          connectWebSocket();
+        }, 1000);
+      }
+    };
+    
+    socket.onerror = () => {
+      console.log('WebSocket error');
     };
     };
     
-    // Make connectWebSocket available globally
-    window.connectWebSocket = connectWebSocket;
     connectWebSocket();
+    
+    return () => {
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      if (socket) {
+        socket.close();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
     
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -101,12 +123,6 @@ function App() {
           console.log('Unknown message type:', type);
       }
     };
-    
-    return () => {
-      if (socket) {
-        socket.close();
-      }
-    };
   }, [yourPlayer]);
 
   const joinGame = () => {
@@ -126,10 +142,7 @@ function App() {
     
     // Reconnect if disconnected
     if (!socket || socket.readyState !== WebSocket.OPEN) {
-      console.log('WebSocket not ready, reconnecting...');
-      if (window.connectWebSocket) {
-        window.connectWebSocket();
-      }
+      console.log('WebSocket not ready');
       return;
     }
     
