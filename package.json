@@ -14,8 +14,8 @@
     "heroku-postbuild": "npm run setup"
   },
   "engines": {
-    "node": "18.x",
-    "npm": "9.x"
+    "node": "20.x",
+    "npm": "10.x"
   },
   "keywords": ["game", "websocket", "kafka", "postgresql", "ai", "react"],
   "author": "Emitrr Assignment",
