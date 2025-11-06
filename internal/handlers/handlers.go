@@ -137,6 +137,9 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 			if gameID != "" && username != "" {
 				h.gameManager.HandlePlayerRejoin(conn, gameID, username)
 			}
+		case "ping":
+			// Keepalive ping - just reset read deadline
+			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		default:
 			log.Printf("Unknown message type: %s", messageType)
 		}

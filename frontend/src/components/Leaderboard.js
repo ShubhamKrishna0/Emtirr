@@ -20,7 +20,7 @@ const Leaderboard = () => {
       }
       
       const data = await response.json();
-      setLeaderboard(data);
+      setLeaderboard(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -66,7 +66,7 @@ const Leaderboard = () => {
         </button>
       </div>
       
-      {leaderboard.length === 0 ? (
+      {!leaderboard || leaderboard.length === 0 ? (
         <div className="no-data">
           No games played yet. Be the first to play!
         </div>
@@ -81,7 +81,7 @@ const Leaderboard = () => {
             <div className="last-played">Last Played</div>
           </div>
           
-          {leaderboard.map((player, index) => (
+          {leaderboard && leaderboard.map((player, index) => (
             <div key={player.username} className="table-row">
               <div className="rank">
                 {index === 0 && '🥇'}

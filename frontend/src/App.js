@@ -26,6 +26,15 @@ function App() {
     socket.onopen = () => {
       setIsConnected(true);
       console.log('WebSocket connected successfully');
+      
+      // Send keepalive ping every 30 seconds
+      const keepAlive = setInterval(() => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: 'ping' }));
+        }
+      }, 30000);
+      
+      socket.keepAlive = keepAlive;
     };
     
     socket.onclose = (event) => {
@@ -95,6 +104,9 @@ function App() {
     
     return () => {
       if (socket) {
+        if (socket.keepAlive) {
+          clearInterval(socket.keepAlive);
+        }
         socket.close();
       }
     };
