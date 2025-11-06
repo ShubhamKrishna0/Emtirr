@@ -2,6 +2,7 @@ package game
 
 import (
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -61,11 +62,20 @@ func NewGameManager(dbService *services.DatabaseService, analyticsService *servi
 }
 
 func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]interface{}) {
+	log.Printf("HandlePlayerJoin called with data: %+v", data)
 	username, ok := data["username"].(string)
-	if !ok || len(username) < 2 || len(username) > 20 {
-		gm.sendError(conn, "Invalid username")
+	if !ok {
+		log.Printf("Username not found or not string: %+v", data["username"])
+		gm.sendError(conn, "Username is required")
 		return
 	}
+	username = strings.TrimSpace(username)
+	if len(username) < 2 || len(username) > 20 {
+		log.Printf("Invalid username length: %s (len=%d)", username, len(username))
+		gm.sendError(conn, "Username must be 2-20 characters")
+		return
+	}
+	log.Printf("Player joining: %s", username)
 
 	player := &models.Player{
 		ID:       generatePlayerID(),
