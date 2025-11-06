@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"emitrr-4-in-a-row/internal/game"
 	"emitrr-4-in-a-row/internal/services"
@@ -24,8 +25,9 @@ func NewHandler(gameManager *game.GameManager, dbService *services.DatabaseServi
 		dbService:   dbService,
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
-				return true // Allow all origins in development
+				return true // Allow all origins
 			},
+			HandshakeTimeout: 10 * time.Second,
 		},
 	}
 }
@@ -91,6 +93,7 @@ func (h *Handler) getAnalytics(c *gin.Context) {
 }
 
 func (h *Handler) handleWebSocket(c *gin.Context) {
+	log.Printf("WebSocket upgrade attempt from: %s", c.Request.RemoteAddr)
 	conn, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Printf("WebSocket upgrade failed: %v", err)
@@ -98,7 +101,11 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 	}
 	defer conn.Close()
 
-	log.Printf("Player connected: %s", conn.RemoteAddr())
+	log.Printf("Player connected successfully: %s", conn.RemoteAddr())
+	
+	// Set read/write timeouts
+	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
 	// Handle messages
 	for {

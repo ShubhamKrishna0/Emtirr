@@ -19,16 +19,22 @@ function App() {
     const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
     
+    console.log('Connecting to WebSocket:', wsUrl);
+    
     socket = new WebSocket(wsUrl);
     
     socket.onopen = () => {
       setIsConnected(true);
-      console.log('Connected to server');
+      console.log('WebSocket connected successfully');
     };
     
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       setIsConnected(false);
-      console.log('Disconnected from server');
+      console.log('WebSocket disconnected:', event.code, event.reason);
+    };
+    
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
     };
     
     socket.onmessage = (event) => {
@@ -82,6 +88,8 @@ function App() {
         case 'error':
           setMessage(`Error: ${data.message}`);
           break;
+        default:
+          console.log('Unknown message type:', type);
       }
     };
     
