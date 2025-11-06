@@ -1,10 +1,10 @@
 services:
   - type: web
     name: emitrr-4-in-a-row
-    env: node
+    env: go
     plan: free
-    buildCommand: cd backend && npm install && cd ../frontend && npm install && npm run build
-    startCommand: cd backend && npm start
+    buildCommand: cd frontend && npm install && npm run build && cd ../backend-go && go mod tidy && go build -o main main.go
+    startCommand: cd backend-go && ./main
     envVars:
       - key: NODE_ENV
         value: production
