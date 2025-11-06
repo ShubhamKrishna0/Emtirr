@@ -86,16 +86,8 @@ async function initialize() {
     await analyticsService.initialize();
     console.log('Analytics initialized');
     
-    // Start analytics consumer in same process
-    if (process.env.REDIS_URL) {
-      const KafkaConsumer = require('./src/services/KafkaConsumer');
-      const consumer = new KafkaConsumer();
-      const initialized = await consumer.initialize();
-      if (initialized) {
-        consumer.start();
-        console.log('Analytics consumer started');
-      }
-    }
+    // Analytics will log locally without Redis
+    console.log('Analytics running in local mode');
     
     // Try database, continue without it if it fails
     try {
