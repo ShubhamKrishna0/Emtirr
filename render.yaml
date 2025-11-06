@@ -32,6 +32,7 @@ services:
   - type: redis
     name: kafka-redis
     plan: free
+    ipAllowList: []
 
 databases:
   - name: emitrr-postgres
