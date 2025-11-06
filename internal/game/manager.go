@@ -428,6 +428,8 @@ func (gm *GameManager) HandlePlayerDisconnect(conn *websocket.Conn) {
 		return
 	}
 
+	log.Printf("Player %s (%s) disconnecting", playerConn.Player.Username, playerID)
+
 	delete(gm.waitingPlayers, playerID)
 	delete(gm.playerSockets, playerID)
 
@@ -437,6 +439,8 @@ func (gm *GameManager) HandlePlayerDisconnect(conn *websocket.Conn) {
 			GameID:         game.ID,
 			DisconnectedAt: time.Now(),
 		}
+
+		log.Printf("Player %s added to disconnected list for game %s", playerConn.Player.Username, game.ID)
 
 		gm.broadcastToGameExcept(game.ID, playerID, "player_disconnected", map[string]interface{}{
 			"player":        playerConn.Player.Username,
@@ -465,11 +469,21 @@ func (gm *GameManager) findReconnectableGame(username string) *models.Game {
 		return nil
 	}
 
-	game, exists := gm.games[disconnectedInfo.GameID]
-	if !exists || game.Status != "playing" {
+	// Check if 30 seconds have passed
+	if time.Since(disconnectedInfo.DisconnectedAt).Seconds() > 30 {
+		log.Printf("Player %s reconnection timeout exceeded", username)
+		delete(gm.disconnectedPlayers, username)
 		return nil
 	}
 
+	game, exists := gm.games[disconnectedInfo.GameID]
+	if !exists || game.Status != "playing" {
+		log.Printf("Game %s not found or not playing for player %s", disconnectedInfo.GameID, username)
+		delete(gm.disconnectedPlayers, username)
+		return nil
+	}
+
+	log.Printf("Player %s can reconnect to game %s", username, game.ID)
 	return game
 }
 

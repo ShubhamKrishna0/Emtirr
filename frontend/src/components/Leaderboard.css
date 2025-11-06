@@ -21,28 +21,21 @@
 
 .refresh-btn,
 .retry-btn {
-  padding: 10px 20px;
-  border: 2px solid #00ffff;
-  border-radius: 20px;
-  background: linear-gradient(45deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 128, 0.1));
-  color: #00ffff;
+  padding: 8px 16px;
+  border: 1px solid #4ecdc4;
+  border-radius: 8px;
+  background: transparent;
+  color: #4ecdc4;
   cursor: pointer;
   font-size: 0.9rem;
-  font-weight: 600;
   transition: all 0.3s ease;
-  backdrop-filter: blur(15px);
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .refresh-btn:hover,
 .retry-btn:hover {
-  background: linear-gradient(45deg, #00ffff, #ff0080);
-  color: #000000;
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 
-    0 8px 20px rgba(0, 255, 255, 0.4),
-    0 0 20px rgba(255, 0, 128, 0.3);
+  background: #4ecdc4;
+  color: #1a1a2e;
+  transform: translateY(-1px);
 }
 
 .loading,
@@ -68,16 +61,10 @@
 }
 
 .leaderboard-table {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(26, 0, 51, 0.6));
-  backdrop-filter: blur(15px);
-  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
   overflow: hidden;
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.5),
-    0 0 20px rgba(0, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  position: relative;
+  border: 1px solid #4ecdc4;
 }
 
 .leaderboard-table::before {
@@ -104,14 +91,12 @@
 }
 
 .table-header {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(13, 0, 26, 0.6));
+  background: rgba(0, 0, 0, 0.3);
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #00ffff;
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-  border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+  letter-spacing: 0.5px;
+  color: #4ecdc4;
 }
 
 .table-row {
@@ -121,11 +106,7 @@
 }
 
 .table-row:hover {
-  background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 128, 0.05));
-  box-shadow: 
-    0 0 20px rgba(0, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transform: scale(1.02);
+  background: rgba(78, 205, 196, 0.1);
 }
 
 .table-row:last-child {
@@ -140,15 +121,13 @@
 
 .username {
   font-weight: bold;
-  color: #00ffff;
-  text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+  color: #4ecdc4;
 }
 
 .wins {
   text-align: center;
   font-weight: bold;
-  color: #00ff88;
-  text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+  color: #2ecc71;
 }
 
 .games {

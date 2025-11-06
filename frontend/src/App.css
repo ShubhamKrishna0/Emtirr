@@ -1,29 +1,13 @@
 .App {
   text-align: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 25%, #000d1a 50%, #001a33 75%, #0a0a0a 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
   color: #ffffff;
-  font-family: 'Orbitron', 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: 'Orbitron', sans-serif;
   overflow-x: hidden;
-  position: relative;
 }
 
-.App::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(0, 255, 0, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: -1;
-}
+
 
 @keyframes gradientShift {
   0% { background-position: 0% 50%; }
@@ -35,13 +19,9 @@
 
 .App-header {
   padding: 20px;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(26, 0, 51, 0.6));
-  border-bottom: 2px solid #00ffff;
-  box-shadow: 
-    0 2px 20px rgba(0, 255, 255, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid #4ecdc4;
+  box-shadow: 0 2px 10px rgba(78, 205, 196, 0.2);
 }
 
 .App-header::before {
@@ -79,18 +59,11 @@
 
 .App-header h1 {
   margin: 0;
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(45deg, #00ffff, #ff0080, #80ff00, #00ffff);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientText 3s ease infinite, titleGlow 2s ease-in-out infinite alternate;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: #4ecdc4;
+  text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
   font-family: 'Orbitron', monospace;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  position: relative;
 }
 
 .App-header h1::before {
@@ -128,14 +101,9 @@
 }
 
 .connection-status {
-  margin-top: 15px;
-  font-size: 1rem;
-  padding: 8px 16px;
-  border-radius: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(0, 255, 255, 0.3);
-  display: inline-block;
-  animation: statusPulse 2s ease-in-out infinite;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 @keyframes statusPulse {
@@ -151,19 +119,14 @@
 
 /* Menu Styles */
 .menu {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(26, 0, 51, 0.6));
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  border-radius: 20px;
-  padding: 40px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid #4ecdc4;
+  border-radius: 15px;
+  padding: 30px;
   margin: 0 auto;
-  max-width: 450px;
-  box-shadow: 
-    0 10px 40px rgba(0, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all 0.4s ease;
-  position: relative;
-  overflow: hidden;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(78, 205, 196, 0.1);
+  transition: all 0.3s ease;
 }
 
 .menu::before {
@@ -225,16 +188,14 @@
 .username-input input {
   flex: 1;
   min-width: 200px;
-  padding: 15px 20px;
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  border-radius: 25px;
+  padding: 12px 16px;
+  border: 1px solid #4ecdc4;
+  border-radius: 8px;
   font-size: 1rem;
-  background: rgba(0, 0, 0, 0.7);
+  background: #1a1a2e;
   color: #ffffff;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-family: 'Orbitron', monospace;
-  text-align: center;
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .username-input input::placeholder {
@@ -244,30 +205,23 @@
 
 .username-input input:focus {
   outline: none;
-  border-color: #00ffff;
-  box-shadow: 
-    0 0 20px rgba(0, 255, 255, 0.5),
-    inset 0 2px 10px rgba(0, 0, 0, 0.5);
-  transform: scale(1.05);
+  border-color: #4ecdc4;
+  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.3);
 }
 
 .username-input button,
 .leaderboard-btn,
 .new-game-btn {
-  padding: 15px 30px;
-  border: 2px solid #00ffff;
-  border-radius: 25px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: linear-gradient(45deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 128, 0.1));
-  color: #00ffff;
+  padding: 12px 24px;
+  border: 1px solid #4ecdc4;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: transparent;
+  color: #4ecdc4;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-family: 'Orbitron', monospace;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  position: relative;
-  overflow: hidden;
 }
 
 .username-input button::before,
@@ -292,13 +246,9 @@
 .username-input button:hover,
 .leaderboard-btn:hover,
 .new-game-btn:hover {
-  background: linear-gradient(45deg, #00ffff, #ff0080);
-  color: #000000;
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 
-    0 10px 25px rgba(0, 255, 255, 0.4),
-    0 0 30px rgba(255, 0, 128, 0.3);
-  border-color: #ff0080;
+  background: #4ecdc4;
+  color: #1a1a2e;
+  transform: translateY(-1px);
 }
 
 .username-input button:active,
@@ -333,18 +283,11 @@
 /* Waiting Styles */
 .waiting {
   text-align: center;
-  padding: 60px;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(26, 0, 51, 0.6));
-  backdrop-filter: blur(20px);
-  border-radius: 30px;
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(0, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  animation: waitingPulse 2s ease-in-out infinite;
-  position: relative;
-  overflow: hidden;
+  padding: 50px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 15px;
+  border: 2px solid #4ecdc4;
+  box-shadow: 0 4px 20px rgba(78, 205, 196, 0.1);
 }
 
 .waiting::before {
@@ -374,17 +317,13 @@
 }
 
 .spinner {
-  width: 80px;
-  height: 80px;
-  border: 4px solid transparent;
-  border-top: 4px solid #00ffff;
-  border-right: 4px solid #ff0080;
-  border-bottom: 4px solid #80ff00;
-  border-left: 4px solid #ff8000;
+  width: 60px;
+  height: 60px;
+  border: 6px solid rgba(255, 255, 255, 0.2);
+  border-top: 6px solid #4ecdc4;
   border-radius: 50%;
-  animation: spin 1s linear infinite, spinnerGlow 2s ease-in-out infinite;
-  margin: 40px auto;
-  position: relative;
+  animation: spin 1s linear infinite;
+  margin: 30px auto;
 }
 
 .spinner::before {
@@ -433,17 +372,10 @@
 
 .game-info {
   text-align: center;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(26, 0, 51, 0.6));
-  backdrop-filter: blur(15px);
-  border-radius: 20px;
-  padding: 25px;
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.5),
-    0 0 20px rgba(0, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #4ecdc4;
 }
 
 .game-info::before {
@@ -529,17 +461,10 @@
 /* Leaderboard Container */
 .leaderboard-container {
   margin-top: 40px;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(26, 0, 51, 0.6));
-  backdrop-filter: blur(15px);
-  border-radius: 25px;
-  padding: 35px;
-  border: 2px solid rgba(0, 255, 255, 0.3);
-  box-shadow: 
-    0 15px 40px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(0, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 15px;
+  padding: 30px;
+  border: 1px solid #4ecdc4;
 }
 
 .leaderboard-container::before {
@@ -558,12 +483,11 @@
 
 /* Gaming UI Enhancements */
 .subtitle {
-  font-size: 1rem;
-  color: #ff0080;
-  text-shadow: 0 0 10px rgba(255, 0, 128, 0.8);
+  font-size: 0.9rem;
+  color: #4ecdc4;
   margin: 10px 0 20px 0;
-  font-weight: 600;
-  letter-spacing: 2px;
+  font-weight: 400;
+  opacity: 0.8;
 }
 
 .gamer-input {
@@ -615,9 +539,8 @@
 }
 
 .waiting-message {
-  font-size: 1.2rem;
-  color: #00ffff;
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  font-size: 1.1rem;
+  color: #4ecdc4;
   margin: 20px 0;
 }
 
@@ -631,22 +554,17 @@
 .loading-dots span {
   width: 8px;
   height: 8px;
-  background: #00ffff;
+  background: #4ecdc4;
   border-radius: 50%;
   animation: dotPulse 1.5s ease-in-out infinite;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
 }
 
 .loading-dots span:nth-child(2) {
   animation-delay: 0.2s;
-  background: #ff0080;
-  box-shadow: 0 0 10px rgba(255, 0, 128, 0.8);
 }
 
 .loading-dots span:nth-child(3) {
   animation-delay: 0.4s;
-  background: #80ff00;
-  box-shadow: 0 0 10px rgba(128, 255, 0, 0.8);
 }
 
 @keyframes dotPulse {

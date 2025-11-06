@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import GameBoard from './components/GameBoard';
 import Leaderboard from './components/Leaderboard';
-import ParticleBackground from './components/ParticleBackground';
 
 import './App.css';
 
@@ -155,6 +154,12 @@ function App() {
           break;
         case 'error':
           setMessage(`Error: ${data.message}`);
+          // Clear reconnection data if error is about game not found
+          if (data.message.includes('No active game') || data.message.includes('not found')) {
+            localStorage.removeItem('gameUsername');
+            localStorage.removeItem('gameId');
+            setDisconnectedGameId(null);
+          }
           break;
         default:
           console.log('Unknown message type:', type);
@@ -222,7 +227,6 @@ function App() {
 
   return (
     <div className="App">
-      <ParticleBackground />
 
       <header className="App-header">
         <h1>⚡ 4 in a Row 🎯</h1>
