@@ -6,13 +6,12 @@
     "install-all": "cd backend && npm install && cd ../frontend && npm install",
     "build": "cd frontend && npm run build",
     "start": "cd backend-go && go run main.go",
-    "start:node": "cd backend && npm start",
+
     "build:go": "cd backend-go && go build -o four-in-a-row main.go",
     "setup:go": "cd backend-go && go mod tidy && cd ../frontend && npm install && npm run build",
-    "analytics": "cd backend && npm run analytics",
-    "dev": "cd backend && npm run dev",
+
     "dev:go": "cd backend-go && go run main.go",
-    "start:backend": "cd backend && npm start",
+
     "start:frontend": "cd frontend && npm start",
     "setup": "npm run setup:go",
     "heroku-postbuild": "npm run setup"
