@@ -29,9 +29,10 @@ services:
           name: kafka-redis
           property: connectionString
 
-databases:
-  - name: emitrr-postgres
+  - type: redis
+    name: kafka-redis
     plan: free
 
-  - name: kafka-redis
+databases:
+  - name: emitrr-postgres
     plan: free
