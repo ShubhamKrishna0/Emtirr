@@ -238,13 +238,7 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 		return
 	}
 
-	// Validate it's the player's turn using username (works after reconnection)
-	playerNumber := game.GetPlayerNumberByUsername(playerConn.Player.Username)
-	if playerNumber != game.CurrentPlayer {
-		gm.sendError(conn, "Not your turn")
-		return
-	}
-
+	// Use the standard game logic (now works because we update player ID on reconnection)
 	row, gameOver, _, err := game.MakeMove(column, playerID)
 	if err != nil {
 		gm.sendError(conn, err.Error())
@@ -254,7 +248,7 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 	moveData := map[string]interface{}{
 		"column":    column,
 		"row":       row,
-		"player":    playerNumber,
+		"player":    game.GetPlayerNumber(playerID),
 		"gameState": game,
 	}
 
@@ -387,16 +381,18 @@ func (gm *GameManager) HandlePlayerRejoin(conn *websocket.Conn, gameID, username
 		return
 	}
 
-	playerID := generatePlayerID()
+	// Generate new connection ID but keep same player object
+	newPlayerID := generatePlayerID()
 	var playerNum int
 	
+	// Update the game's player ID and connection
 	if game.Player1.Username == username {
-		game.Player1.ID = playerID
-		gm.playerSockets[playerID] = &PlayerConnection{Player: game.Player1, Conn: conn}
+		game.Player1.ID = newPlayerID // Update ID in game object
+		gm.playerSockets[newPlayerID] = &PlayerConnection{Player: game.Player1, Conn: conn}
 		playerNum = 1
 	} else if game.Player2.Username == username {
-		game.Player2.ID = playerID
-		gm.playerSockets[playerID] = &PlayerConnection{Player: game.Player2, Conn: conn}
+		game.Player2.ID = newPlayerID // Update ID in game object  
+		gm.playerSockets[newPlayerID] = &PlayerConnection{Player: game.Player2, Conn: conn}
 		playerNum = 2
 	} else {
 		gm.sendError(conn, "You are not a player in this game")
@@ -415,12 +411,12 @@ func (gm *GameManager) HandlePlayerRejoin(conn *websocket.Conn, gameID, username
 	gm.sendMessage(conn, "game_rejoined", rejoinData)
 	
 	// Notify other player about reconnection
-	gm.broadcastToGameExcept(game.ID, playerID, "player_reconnected", map[string]interface{}{
+	gm.broadcastToGameExcept(game.ID, newPlayerID, "player_reconnected", map[string]interface{}{
 		"player": username,
 		"message": username + " has reconnected!",
 	})
 
-	log.Printf("Player %s successfully rejoined game %s", username, gameID)
+	log.Printf("Player %s successfully rejoined game %s with new ID %s", username, gameID, newPlayerID)
 
 	gm.analyticsService.TrackEvent("player_rejoined", map[string]interface{}{
 		"gameId": game.ID,
