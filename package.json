@@ -14,12 +14,9 @@
 
     "start:frontend": "cd frontend && npm start",
     "setup": "npm run setup:go",
-    "heroku-postbuild": "npm run setup"
+
   },
-  "engines": {
-    "node": "20.x",
-    "npm": "10.x"
-  },
+
   "keywords": ["game", "websocket", "kafka", "postgresql", "ai", "react"],
   "author": "Emitrr Assignment",
   "license": "MIT"
