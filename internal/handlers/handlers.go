@@ -26,9 +26,6 @@ func NewHandler(gameManager *game.GameManager, dbService *services.DatabaseServi
 			CheckOrigin: func(r *http.Request) bool {
 				return true
 			},
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
-			EnableCompression: false,
 		},
 	}
 }
@@ -104,10 +101,7 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 
 	log.Printf("Player connected successfully: %s", conn.RemoteAddr())
 	
-	// Set connection options
-	conn.SetPongHandler(func(string) error {
-		return nil
-	})
+
 
 	// Handle messages
 	for {

@@ -21,7 +21,6 @@ function App() {
       const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
       
       socket = new WebSocket(wsUrl);
-      socket.binaryType = 'arraybuffer';
     
     socket.onopen = () => {
       setIsConnected(true);
@@ -31,11 +30,6 @@ function App() {
     socket.onclose = (event) => {
       setIsConnected(false);
       console.log('WebSocket disconnected:', event.code);
-      
-      // Auto-reconnect after 2 seconds if not intentional close
-      if (event.code !== 1000) {
-        setTimeout(connectWebSocket, 2000);
-      }
     };
     
     socket.onerror = (error) => {
