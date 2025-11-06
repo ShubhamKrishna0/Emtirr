@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"four-in-a-row/internal/models"
-	"four-in-a-row/internal/services"
+	"emitrr-4-in-a-row/internal/models"
+	"emitrr-4-in-a-row/internal/services"
 
 	"github.com/gorilla/websocket"
 )

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"four-in-a-row/internal/config"
+	"emitrr-4-in-a-row/internal/config"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"

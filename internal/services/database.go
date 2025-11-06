@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"four-in-a-row/internal/config"
+	"emitrr-4-in-a-row/internal/config"
 
 	_ "github.com/lib/pq"
 )

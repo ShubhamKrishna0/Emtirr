@@ -9,10 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"./backend-go/internal/config"
-	"./backend-go/internal/game"
-	"./backend-go/internal/handlers"
-	"./backend-go/internal/services"
+	"emitrr-4-in-a-row/internal/config"
+	"emitrr-4-in-a-row/internal/game"
+	"emitrr-4-in-a-row/internal/handlers"
+	"emitrr-4-in-a-row/internal/services"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"

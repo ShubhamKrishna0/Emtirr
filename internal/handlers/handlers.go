@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"four-in-a-row/internal/game"
-	"four-in-a-row/internal/services"
+	"emitrr-4-in-a-row/internal/game"
+	"emitrr-4-in-a-row/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

@@ -1,7 +1,7 @@
 package game
 
 import (
-	"four-in-a-row/internal/models"
+	"emitrr-4-in-a-row/internal/models"
 	"math"
 )
 
