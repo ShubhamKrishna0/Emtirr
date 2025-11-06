@@ -174,6 +174,19 @@ class DatabaseService {
     }
   }
 
+  async saveGameAnalytics(analyticsData) {
+    const query = `
+      INSERT INTO analytics_events (event_type, game_id, data)
+      VALUES ('game_analytics', $1, $2)
+    `;
+    
+    try {
+      await this.pool.query(query, [analyticsData.gameId, JSON.stringify(analyticsData)]);
+    } catch (error) {
+      console.error('Failed to save game analytics:', error);
+    }
+  }
+
   async getRecentGames(limit = 20) {
     const query = `
       SELECT 

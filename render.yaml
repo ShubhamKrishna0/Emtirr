@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: emitrr-4-in-a-row
+    env: node
+    plan: free
+    buildCommand: npm run setup
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: KAFKA_BROKER
+        fromService:
+          type: redis
+          name: kafka-redis
+          property: connectionString
+
+  - type: worker
+    name: emitrr-analytics
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: cd backend && npm run analytics
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: KAFKA_BROKER
+        fromService:
+          type: redis
+          name: kafka-redis
+          property: connectionString
+
+databases:
+  - name: emitrr-postgres
+    plan: free
+
+  - name: kafka-redis
+    plan: free

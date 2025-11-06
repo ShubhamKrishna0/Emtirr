@@ -11,23 +11,24 @@ npm run setup
 
 ### 2. Setup Kafka (Optional - for analytics)
 
-**Download Kafka:**
-- Download from: https://kafka.apache.org/downloads
-- Extract to `C:\kafka`
-
-**Start Kafka (3 terminals):**
+**Option A: Docker (Recommended)**
 ```bash
-# Terminal 1 - Start Zookeeper
+# Start with analytics
+docker-compose --profile analytics up -d
+```
+
+**Option B: Local Kafka**
+```bash
+# Download from: https://kafka.apache.org/downloads
+# Extract to C:\kafka
+
+# Terminal 1 - Zookeeper
 cd C:\kafka
 .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
 
-# Terminal 2 - Start Kafka
+# Terminal 2 - Kafka
 cd C:\kafka
 .\bin\windows\kafka-server-start.bat .\config\server.properties
-
-# Terminal 3 - Create Topic
-cd C:\kafka
-.\bin\windows\kafka-topics.bat --create --topic game-events --bootstrap-server localhost:9092
 ```
 
 ### 3. Setup Database
@@ -48,8 +49,19 @@ copy .env.example .env
 ```
 
 ### 5. Run Application
+
+**Without Analytics:**
 ```bash
 npm start
+```
+
+**With Analytics:**
+```bash
+# Terminal 1 - Main app
+npm start
+
+# Terminal 2 - Analytics consumer
+npm run analytics
 ```
 
 **Game available at:** `http://localhost:3001`
@@ -78,12 +90,11 @@ npm start
 ## 🔧 Development Commands
 
 ```bash
-npm run install-all    # Install all dependencies
+npm run setup          # Install all dependencies
 npm run build          # Build frontend
 npm start              # Start application
+npm run analytics      # Start analytics consumer
 npm run dev            # Development mode
-npm run start:backend  # Backend only
-npm run start:frontend # Frontend only
 ```
 
 ## 🎯 Features
@@ -98,16 +109,23 @@ npm run start:frontend # Frontend only
 
 ## 🚀 Deployment
 
-**Heroku:**
+**Heroku (No Analytics):**
 ```bash
 heroku create your-app-name
 heroku addons:create heroku-postgresql:hobby-dev
 git push heroku main
 ```
 
-**Docker:**
+**Docker (Basic):**
 ```bash
 docker-compose up -d
 ```
+
+**Docker (With Analytics):**
+```bash
+docker-compose --profile analytics up -d
+```
+
+**See [KAFKA_DEPLOYMENT.md](KAFKA_DEPLOYMENT.md) for detailed analytics setup.**
 
 Built with ❤️ for Emitrr Backend Engineering Assignment
