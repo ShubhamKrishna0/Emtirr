@@ -5,7 +5,7 @@ import Leaderboard from './components/Leaderboard';
 
 import './App.css';
 
-const socket = io(process.env.REACT_APP_SERVER_URL || 'http://localhost:3001');
+const socket = io(window.location.origin);
 
 function App() {
   const [gameState, setGameState] = useState(null);
