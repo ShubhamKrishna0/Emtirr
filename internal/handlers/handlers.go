@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"emitrr-4-in-a-row/internal/game"
 	"emitrr-4-in-a-row/internal/services"
