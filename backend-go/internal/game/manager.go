@@ -1,7 +1,6 @@
 package game
 
 import (
-	"encoding/json"
 	"log"
 	"sync"
 	"time"
@@ -214,7 +213,7 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 		return
 	}
 
-	row, gameOver, winner, err := game.MakeMove(column, playerID)
+	row, gameOver, _, err := game.MakeMove(column, playerID)
 	if err != nil {
 		gm.sendError(conn, err.Error())
 		return
@@ -258,7 +257,7 @@ func (gm *GameManager) makeBotMove(game *models.Game) {
 		column = gm.bot.GetBestMove(game)
 	}
 
-	row, gameOver, winner, err := game.MakeMove(column, gm.bot.ID)
+	row, gameOver, _, err := game.MakeMove(column, gm.bot.ID)
 	if err != nil {
 		log.Printf("Bot move error: %v", err)
 		return
