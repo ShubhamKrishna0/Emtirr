@@ -25,9 +25,11 @@ func NewHandler(gameManager *game.GameManager, dbService *services.DatabaseServi
 		dbService:   dbService,
 		upgrader: websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
-				return true // Allow all origins
+				return true
 			},
-			HandshakeTimeout: 10 * time.Second,
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			EnableCompression: false,
 		},
 	}
 }
@@ -103,13 +105,14 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 
 	log.Printf("Player connected successfully: %s", conn.RemoteAddr())
 	
-	// Set read deadline only - no write deadline to prevent timeouts
-	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	// Set connection options
+	conn.SetPongHandler(func(string) error {
+		return nil
+	})
 
 	// Handle messages
 	for {
-		// Reset read deadline for each message
-		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+
 		
 		var message map[string]interface{}
 		err := conn.ReadJSON(&message)
@@ -137,6 +140,7 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 			log.Printf("Processing join_game with data: %+v", data)
 			h.gameManager.HandlePlayerJoin(conn, data)
 		case "make_move":
+			log.Printf("Processing make_move: %+v", data)
 			h.gameManager.HandlePlayerMove(conn, data)
 		case "rejoin_game":
 			gameID, _ := data["gameId"].(string)
@@ -144,10 +148,7 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 			if gameID != "" && username != "" {
 				h.gameManager.HandlePlayerRejoin(conn, gameID, username)
 			}
-		case "ping":
-			// Keepalive ping - just reset read deadline
-			log.Printf("Received ping from %s", conn.RemoteAddr())
-			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+
 		default:
 			log.Printf("Unknown message type: %s", messageType)
 		}

@@ -541,16 +541,18 @@ func (gm *GameManager) sendMessage(conn *websocket.Conn, messageType string, dat
 		"data": data,
 	}
 
-	log.Printf("Sending WebSocket message: type=%s", messageType)
-	// Set write deadline for this specific write
-	conn.SetWriteDeadline(time.Now().Add(30 * time.Second))
-	if err := conn.WriteJSON(message); err != nil {
-		log.Printf("Failed to send message %s: %v", messageType, err)
-	} else {
-		log.Printf("Successfully sent message: %s", messageType)
-	}
-	// Clear write deadline
-	conn.SetWriteDeadline(time.Time{})
+	// Use goroutine for non-blocking writes
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Recovered from panic in sendMessage: %v", r)
+			}
+		}()
+		
+		if err := conn.WriteJSON(message); err != nil {
+			log.Printf("Failed to send %s: %v", messageType, err)
+		}
+	}()
 }
 
 func (gm *GameManager) sendError(conn *websocket.Conn, message string) {

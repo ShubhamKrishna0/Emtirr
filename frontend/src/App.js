@@ -16,35 +16,34 @@ function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
-    
-    console.log('Connecting to WebSocket:', wsUrl);
-    
-    socket = new WebSocket(wsUrl);
+    const connectWebSocket = () => {
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+      
+      socket = new WebSocket(wsUrl);
+      socket.binaryType = 'arraybuffer';
     
     socket.onopen = () => {
       setIsConnected(true);
       console.log('WebSocket connected successfully');
-      
-      // Send keepalive ping every 30 seconds
-      const keepAlive = setInterval(() => {
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({ type: 'ping' }));
-        }
-      }, 30000);
-      
-      socket.keepAlive = keepAlive;
     };
     
     socket.onclose = (event) => {
       setIsConnected(false);
-      console.log('WebSocket disconnected:', event.code, event.reason);
+      console.log('WebSocket disconnected:', event.code);
+      
+      // Auto-reconnect after 2 seconds if not intentional close
+      if (event.code !== 1000) {
+        setTimeout(connectWebSocket, 2000);
+      }
     };
     
     socket.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
+    };
+    
+    connectWebSocket();
     
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -104,9 +103,6 @@ function App() {
     
     return () => {
       if (socket) {
-        if (socket.keepAlive) {
-          clearInterval(socket.keepAlive);
-        }
         socket.close();
       }
     };
