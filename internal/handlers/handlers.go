@@ -109,6 +109,9 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 
 	// Handle messages
 	for {
+		// Reset read deadline for each message
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		
 		var message map[string]interface{}
 		err := conn.ReadJSON(&message)
 		if err != nil {
@@ -116,18 +119,23 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 			break
 		}
 
+		log.Printf("Received WebSocket message: %+v", message)
+
 		messageType, ok := message["type"].(string)
 		if !ok {
+			log.Printf("Invalid message type: %+v", message["type"])
 			continue
 		}
 
 		data, ok := message["data"].(map[string]interface{})
 		if !ok {
+			log.Printf("Invalid data format: %+v", message["data"])
 			data = make(map[string]interface{})
 		}
 
 		switch messageType {
 		case "join_game":
+			log.Printf("Processing join_game with data: %+v", data)
 			h.gameManager.HandlePlayerJoin(conn, data)
 		case "make_move":
 			h.gameManager.HandlePlayerMove(conn, data)
@@ -139,6 +147,7 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 			}
 		case "ping":
 			// Keepalive ping - just reset read deadline
+			log.Printf("Received ping from %s", conn.RemoteAddr())
 			conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		default:
 			log.Printf("Unknown message type: %s", messageType)
