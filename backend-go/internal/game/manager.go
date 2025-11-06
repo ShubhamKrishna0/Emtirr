@@ -84,7 +84,7 @@ func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]in
 	// Check for reconnectable game
 	if reconnectGame := gm.findReconnectableGame(username); reconnectGame != nil {
 		gm.mu.Unlock()
-		gm.handlePlayerRejoin(conn, reconnectGame.ID, username)
+		gm.HandlePlayerRejoin(conn, reconnectGame.ID, username)
 		return
 	}
 
@@ -345,7 +345,7 @@ func (gm *GameManager) handleGameEnd(game *models.Game) {
 	}()
 }
 
-func (gm *GameManager) handlePlayerRejoin(conn *websocket.Conn, gameID, username string) {
+func (gm *GameManager) HandlePlayerRejoin(conn *websocket.Conn, gameID, username string) {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
 

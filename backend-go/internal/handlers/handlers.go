@@ -125,12 +125,10 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 		case "make_move":
 			h.gameManager.HandlePlayerMove(conn, data)
 		case "rejoin_game":
-			// Handle rejoin logic
 			gameID, _ := data["gameId"].(string)
 			username, _ := data["username"].(string)
 			if gameID != "" && username != "" {
-				// This would need to be implemented in GameManager
-				log.Printf("Player %s attempting to rejoin game %s", username, gameID)
+				h.gameManager.HandlePlayerRejoin(conn, gameID, username)
 			}
 		default:
 			log.Printf("Unknown message type: %s", messageType)
