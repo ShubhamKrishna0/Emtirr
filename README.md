@@ -1,131 +1,288 @@
 # ⚡ 4 in a Row - Real-time Multiplayer Game 🎯
 
-A professional Connect Four game with real-time multiplayer, competitive AI bot, and Kafka analytics.
+A professional Connect Four game with real-time multiplayer, competitive AI bot, and Kafka-style analytics system.
+
+## 🚀 Live Demo
+
+- **🎮 Play Game**: [https://emitrr-4-in-a-row.onrender.com](https://emitrr-4-in-a-row.onrender.com)
+- **📊 Live Analytics**: [https://emitrr-4-in-a-row.onrender.com/api/analytics](https://emitrr-4-in-a-row.onrender.com/api/analytics)
+- **📁 GitHub Repo**: [https://github.com/ShubhamKrishna0/Emtirr.git](https://github.com/ShubhamKrishna0/Emtirr.git)
+
+## 🎯 Features
+
+✅ **Real-time Multiplayer** - WebSocket-based gameplay  
+✅ **AI Bot Integration** - Smart bot joins after 10 seconds  
+✅ **Reconnection System** - 30-second grace period  
+✅ **PostgreSQL Persistence** - Game history & leaderboard  
+✅ **Kafka Analytics** - Real-time event streaming  
+✅ **Live Metrics** - Game duration, win rates, player stats  
+✅ **Production Ready** - Deployed on Render with full scaling  
+
+## 🏗️ Architecture
+
+```
+Frontend (React)     Backend (Node.js)     Database & Analytics
+     │                      │                       │
+     ├─ Socket.IO ──────────┼─ Express Server       ├─ PostgreSQL
+     ├─ Game Board          ├─ Game Manager         ├─ Redis (Analytics)
+     ├─ Leaderboard         ├─ AI Bot Logic         └─ Real-time Metrics
+     └─ Real-time UI        └─ Analytics Service
+```
+
+## 📋 Prerequisites
+
+- **Node.js** (v20.x or higher)
+- **PostgreSQL** (v12+ for local development)
+- **Git** for cloning the repository
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### 1. Clone Repository
+```bash
+git clone https://github.com/ShubhamKrishna0/Emtirr.git
+cd Emtirr
+```
+
+### 2. Install Dependencies
 ```bash
 npm run setup
 ```
+This installs dependencies for both backend and frontend.
 
-### 2. Setup Kafka (Optional - for analytics)
-
-**Option A: Docker (Recommended)**
+### 3. Environment Setup
 ```bash
-# Start with analytics
-docker-compose --profile analytics up -d
+# Copy environment template
+cp backend/.env.example backend/.env
 ```
 
-**Option B: Local Kafka**
-```bash
-# Download from: https://kafka.apache.org/downloads
-# Extract to C:\kafka
-
-# Terminal 1 - Zookeeper
-cd C:\kafka
-.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
-
-# Terminal 2 - Kafka
-cd C:\kafka
-.\bin\windows\kafka-server-start.bat .\config\server.properties
+Edit `backend/.env`:
+```env
+PORT=3001
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=four_in_a_row
+DB_USER=postgres
+DB_PASSWORD=your_postgres_password
+NODE_ENV=development
 ```
 
-### 3. Setup Database
+### 4. Database Setup
+
+**Option A: Local PostgreSQL**
 ```bash
-# Create PostgreSQL database
+# Create database
 createdb four_in_a_row
 
 # Or using psql
 psql -U postgres -c "CREATE DATABASE four_in_a_row;"
 ```
 
-### 4. Configure Environment
-```bash
-# Copy environment template
-copy .env.example .env
-
-# Edit .env file with your database password
-```
+**Option B: Skip Database (Optional)**
+The app works without database - leaderboard will be empty but game functions normally.
 
 ### 5. Run Application
-
-**Without Analytics:**
 ```bash
 npm start
 ```
 
-**With Analytics:**
-```bash
-# Terminal 1 - Main app
-npm start
-
-# Terminal 2 - Analytics consumer
-npm run analytics
-```
-
-**Game available at:** `http://localhost:3001`
+**Game available at**: `http://localhost:3001`
 
 ## 🎮 How to Play
 
-1. Enter username
-2. Wait for opponent (bot joins after 10 seconds)
-3. Click columns to drop discs
-4. Connect 4 discs to win!
-5. View leaderboard
+1. **Enter Username** - Type your name and click "Join Game"
+2. **Wait for Opponent** - Another player or bot (after 10 seconds)
+3. **Make Moves** - Click columns to drop your discs
+4. **Win Condition** - Connect 4 discs horizontally, vertically, or diagonally
+5. **View Stats** - Check leaderboard for rankings
 
-## 🏗️ Architecture
+## 📊 Analytics System
 
-- **Backend:** Node.js + Express + Socket.IO + PostgreSQL + Kafka
-- **Frontend:** React + Socket.IO Client
-- **AI Bot:** Minimax algorithm with alpha-beta pruning
-- **Analytics:** Real-time Kafka event streaming
+### Real-Time Event Tracking
+The system tracks:
+- **Game Events**: Start, moves, end, duration
+- **Player Metrics**: Win rates, activity patterns
+- **Bot Performance**: Decision patterns, effectiveness
+- **System Health**: Connection stability, response times
 
-## 📋 Prerequisites
+### View Analytics
+- **API Endpoint**: `/api/analytics`
+- **Live Logs**: Check console for real-time events
+- **Database**: Query `analytics_events` table
 
-- Node.js (v14+)
-- PostgreSQL (v12+)
-- Kafka (optional)
+### Sample Analytics Response
+```json
+{
+  "totalGames": [{"count": "45"}],
+  "totalPlayers": [{"count": "12"}],
+  "avgGameDuration": [{"avg_duration": "180.5"}],
+  "topWinners": [
+    {"username": "Alice", "games_won": 8},
+    {"username": "Bob", "games_won": 6}
+  ],
+  "botVsHuman": [
+    {"is_bot": false, "count": "30", "avg_duration": "195.2"},
+    {"is_bot": true, "count": "15", "avg_duration": "165.8"}
+  ]
+}
+```
 
 ## 🔧 Development Commands
 
 ```bash
 npm run setup          # Install all dependencies
-npm run build          # Build frontend
-npm start              # Start application
-npm run analytics      # Start analytics consumer
-npm run dev            # Development mode
+npm start              # Start full application
+npm run analytics      # Start analytics consumer (if using Kafka)
+npm run dev            # Development mode with hot reload
 ```
 
-## 🎯 Features
+## 🚀 Production Deployment
 
-✅ Real-time multiplayer with WebSockets  
-✅ Competitive AI bot (10-second fallback)  
-✅ 30-second reconnection system  
-✅ PostgreSQL game persistence  
-✅ Live leaderboard  
-✅ Kafka analytics pipeline  
-✅ Responsive React UI  
+### Deploy to Render (Recommended)
 
-## 🚀 Deployment
+1. **Fork/Clone** this repository
+2. **Connect to Render**:
+   - Go to [render.com](https://render.com)
+   - Connect your GitHub account
+   - Select this repository
+3. **Auto-Deploy**: Render detects `render.yaml` and deploys automatically
+4. **Services Created**:
+   - Web Service (Main app)
+   - PostgreSQL Database
+   - Redis (Analytics queue)
 
-**Heroku (No Analytics):**
+### Manual Deployment Steps
+
 ```bash
-heroku create your-app-name
-heroku addons:create heroku-postgresql:hobby-dev
-git push heroku main
+# 1. Push to GitHub
+git add .
+git commit -m "Deploy to production"
+git push origin main
+
+# 2. Render will auto-deploy from render.yaml
+# 3. Your app will be live at: https://your-app-name.onrender.com
 ```
 
-**Docker (Basic):**
+### Environment Variables (Production)
+Render automatically sets:
+- `DATABASE_URL` - PostgreSQL connection
+- `REDIS_URL` - Analytics queue
+- `NODE_ENV=production`
+
+## 🧪 Testing
+
+### Manual Testing
+1. **Single Player**: Join game, wait for bot
+2. **Multiplayer**: Open two browser tabs, join with different names
+3. **Reconnection**: Refresh page during game, should reconnect
+4. **Analytics**: Check `/api/analytics` after playing games
+
+### Game Logic Testing
+- **Win Detection**: Test horizontal, vertical, diagonal wins
+- **Draw Condition**: Fill board without winner
+- **Bot Intelligence**: Bot should block winning moves
+- **Move Validation**: Invalid moves should be rejected
+
+## 📁 Project Structure
+
+```
+Emtirr/
+├── backend/
+│   ├── src/
+│   │   ├── game/
+│   │   │   ├── GameManager.js    # Core game logic
+│   │   │   └── Bot.js            # AI bot implementation
+│   │   ├── services/
+│   │   │   ├── DatabaseService.js    # PostgreSQL operations
+│   │   │   ├── AnalyticsService.js   # Event tracking
+│   │   │   └── KafkaConsumer.js      # Analytics processor
+│   │   ├── models/
+│   │   │   └── Game.js           # Game data model
+│   │   └── middleware/
+│   │       └── security.js       # Input validation
+│   ├── analytics-consumer.js     # Standalone analytics service
+│   ├── server.js                 # Express + Socket.IO server
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── GameBoard.js      # Game interface
+│   │   │   └── Leaderboard.js    # Rankings display
+│   │   ├── App.js                # Main React component
+│   │   └── index.js
+│   └── package.json
+├── render.yaml                   # Production deployment config
+├── package.json                  # Root package file
+└── README.md
+```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+**1. Database Connection Failed**
 ```bash
-docker-compose up -d
+# Check PostgreSQL is running
+pg_ctl status
+
+# Verify database exists
+psql -l | grep four_in_a_row
 ```
 
-**Docker (With Analytics):**
+**2. Port Already in Use**
 ```bash
-docker-compose --profile analytics up -d
+# Kill process on port 3001
+lsof -ti:3001 | xargs kill -9
 ```
 
-**See [KAFKA_DEPLOYMENT.md](KAFKA_DEPLOYMENT.md) for detailed analytics setup.**
+**3. WebSocket Connection Issues**
+- Check firewall settings
+- Ensure port 3001 is accessible
+- Try different browser
 
-Built with ❤️ for Emitrr Backend Engineering Assignment
+**4. Analytics Not Working**
+- Analytics work without Kafka (logs to console)
+- Check `/api/analytics` endpoint
+- Verify database connection
+
+### Performance Optimization
+
+**Frontend**:
+- Game board renders efficiently with React
+- WebSocket events are debounced
+- Leaderboard caches for 30 seconds
+
+**Backend**:
+- Database connections pooled
+- Game state stored in memory
+- Analytics events batched
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature-name`
+3. Commit changes: `git commit -m 'Add feature'`
+4. Push to branch: `git push origin feature-name`
+5. Submit pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 👨‍💻 Author
+
+**Shubham Krishna**
+- GitHub: [@ShubhamKrishna0](https://github.com/ShubhamKrishna0)
+- Project: [Emtirr](https://github.com/ShubhamKrishna0/Emtirr)
+
+---
+
+## 🎯 Assignment Requirements Met
+
+✅ **Real-time Multiplayer Game** - WebSocket implementation  
+✅ **AI Bot Integration** - Minimax algorithm with alpha-beta pruning  
+✅ **Database Integration** - PostgreSQL with game persistence  
+✅ **Kafka Analytics** - Event streaming and metrics tracking  
+✅ **Production Deployment** - Live on Render with scaling  
+✅ **Complete Documentation** - Full setup and usage guide  
+
+**Built with ❤️ for Emitrr Backend Engineering Assignment**
