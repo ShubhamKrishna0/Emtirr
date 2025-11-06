@@ -10,7 +10,9 @@ services:
       cd ../backend-go
       go mod tidy
       go build -o main main.go
-    startCommand: ./backend-go/main
+      cd ..
+      go build -o main main.go
+    startCommand: ./main
     envVars:
       - key: NODE_ENV
         value: production
