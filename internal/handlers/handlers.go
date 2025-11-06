@@ -103,9 +103,8 @@ func (h *Handler) handleWebSocket(c *gin.Context) {
 
 	log.Printf("Player connected successfully: %s", conn.RemoteAddr())
 	
-	// Set read/write timeouts
+	// Set read deadline only - no write deadline to prevent timeouts
 	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
 	// Handle messages
 	for {
