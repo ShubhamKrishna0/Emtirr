@@ -18,6 +18,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func StartServer() {
+	main()
+}
+
 func main() {
 	cfg := config.Load()
 

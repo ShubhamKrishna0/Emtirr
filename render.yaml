@@ -4,14 +4,9 @@ services:
     runtime: go
     plan: free
     buildCommand: |
-      cd frontend
-      npm install
-      npm run build
-      cd ../backend-go
-      go mod tidy
-      go build -o main main.go
-      cd ..
-      go build -o main main.go
+      cd frontend && npm install && npm run build
+      cd ../backend-go && go mod tidy
+      cd .. && go mod tidy && go build -o main .
     startCommand: ./main
     envVars:
       - key: NODE_ENV

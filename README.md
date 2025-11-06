@@ -1,6 +1,6 @@
 # ⚡ 4 in a Row - Real-time Multiplayer Game 🎯
 
-A professional Connect Four game with real-time multiplayer, competitive AI bot, and Kafka-style analytics system.
+A professional Connect Four game with real-time multiplayer, competitive AI bot, and Kafka-style analytics system built with **Go backend** and React frontend.
 
 ## 🚀 Live Demo
 
@@ -21,43 +21,36 @@ A professional Connect Four game with real-time multiplayer, competitive AI bot,
 ## 🏗️ Architecture
 
 ```
-Frontend (React)     Backend (Node.js/Go)  Database & Analytics
+Frontend (React)     Backend (Go)          Database & Analytics
      │                      │                       │
-     ├─ WebSocket ──────────┼─ Game Server          ├─ PostgreSQL
+     ├─ WebSocket ──────────┼─ Gin Server           ├─ PostgreSQL
      ├─ Game Board          ├─ Game Manager         ├─ Redis (Analytics)
      ├─ Leaderboard         ├─ AI Bot Logic         └─ Real-time Metrics
      └─ Real-time UI        └─ Analytics Service
 ```
 
-## 🔥 NEW: Go Backend Available!
+## 🚀 High-Performance Go Backend
 
-**Performance Upgrade**: Now includes a high-performance Go backend implementation!
+**Production-Ready Implementation**:
 
 - **30% faster** response times
 - **50% lower** memory usage  
 - **2x concurrent** user capacity
-- **100% compatible** with existing frontend
+- **Native WebSocket** support
+- **Goroutine-based** concurrency
 
-### Quick Start with Go Backend
+### Quick Start
 ```bash
-# Setup Go backend (now default)
-npm run setup
-
-# Start Go server
-npm start
+# Setup and run
+go mod tidy
+cd frontend && npm install && npm run build
+cd .. && go run .
 ```
-
-📖 **[Migration Guide](MIGRATION_GUIDE.md)** - Complete guide for Go backend
 
 ## 📋 Prerequisites
 
-### Node.js Backend (Original)
-- **Node.js** (v20.x or higher)
-- **PostgreSQL** (v12+ for local development)
-- **Git** for cloning the repository
-
-### Go Backend (New - Recommended)
-- **Go** (v1.21 or higher) 
+- **Go** (v1.21 or higher)
+- **Node.js** (v18+ for frontend build only)
 - **PostgreSQL** (v12+ for local development)
 - **Git** for cloning the repository
 
@@ -78,10 +71,10 @@ This installs dependencies for both backend and frontend.
 ### 3. Environment Setup
 ```bash
 # Copy environment template
-cp backend/.env.example backend/.env
+cp backend-go/.env.example backend-go/.env
 ```
 
-Edit `backend/.env`:
+Edit `backend-go/.env`:
 ```env
 PORT=3001
 DB_HOST=localhost
@@ -108,7 +101,7 @@ The app works without database - leaderboard will be empty but game functions no
 
 ### 5. Run Application
 ```bash
-npm start
+go run .
 ```
 
 **Game available at**: `http://localhost:3001`
@@ -154,20 +147,14 @@ The system tracks:
 
 ## 🔧 Development Commands
 
-### Node.js Backend (Original)
 ```bash
-npm run setup          # Install all dependencies
-npm start              # Start Node.js application
-npm run analytics      # Start analytics consumer
-npm run dev            # Development mode with hot reload
-```
+go mod tidy            # Install Go dependencies
+go run .               # Start Go application
+go build -o main .     # Build Go binary
+./main                 # Run built binary
 
-### Go Backend (Default - High Performance)
-```bash
-npm run setup          # Setup Go backend + frontend
-npm start              # Start Go application
-npm run build:go       # Build Go binary
-npm run dev:go         # Development mode
+# Frontend (for development)
+cd frontend && npm install && npm run build
 ```
 
 ## 🚀 Production Deployment
