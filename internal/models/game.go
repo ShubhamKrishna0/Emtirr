@@ -168,10 +168,21 @@ func (g *Game) IsBoardFull() bool {
 }
 
 func (g *Game) GetPlayerNumber(playerID string) int {
+	// Check by ID first
 	if g.Player1.ID == playerID {
 		return 1
 	}
 	if g.Player2 != nil && g.Player2.ID == playerID {
+		return 2
+	}
+	return 0
+}
+
+func (g *Game) GetPlayerNumberByUsername(username string) int {
+	if g.Player1.Username == username {
+		return 1
+	}
+	if g.Player2 != nil && g.Player2.Username == username {
 		return 2
 	}
 	return 0

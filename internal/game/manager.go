@@ -228,6 +228,23 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 		return
 	}
 
+	// Get player info for validation
+	gm.mu.RLock()
+	playerConn, playerExists := gm.playerSockets[playerID]
+	gm.mu.RUnlock()
+	
+	if !playerExists {
+		gm.sendError(conn, "Player connection not found")
+		return
+	}
+
+	// Validate it's the player's turn using username (works after reconnection)
+	playerNumber := game.GetPlayerNumberByUsername(playerConn.Player.Username)
+	if playerNumber != game.CurrentPlayer {
+		gm.sendError(conn, "Not your turn")
+		return
+	}
+
 	row, gameOver, _, err := game.MakeMove(column, playerID)
 	if err != nil {
 		gm.sendError(conn, err.Error())
@@ -237,7 +254,7 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 	moveData := map[string]interface{}{
 		"column":    column,
 		"row":       row,
-		"player":    game.GetPlayerNumber(playerID),
+		"player":    playerNumber,
 		"gameState": game,
 	}
 
