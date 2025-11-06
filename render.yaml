@@ -5,7 +5,6 @@ services:
     plan: free
     buildCommand: |
       cd frontend && npm install && npm run build
-      cd ../backend-go && go mod tidy
       cd .. && go mod tidy && go build -o main .
     startCommand: ./main
     envVars:
