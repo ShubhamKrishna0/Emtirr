@@ -42,9 +42,9 @@ func (h *Handler) SetupRoutes(router *gin.Engine) {
 	router.GET("/ws", h.handleWebSocket)
 
 	// Serve static files (React build)
-	router.Static("/static", "../frontend/build/static")
-	router.StaticFile("/favicon.ico", "../frontend/build/favicon.ico")
-	router.StaticFile("/manifest.json", "../frontend/build/manifest.json")
+	router.Static("/static", "./frontend/build/static")
+	router.StaticFile("/favicon.ico", "./frontend/build/favicon.ico")
+	router.StaticFile("/manifest.json", "./frontend/build/manifest.json")
 
 	// Serve React app for all other routes
 	router.NoRoute(func(c *gin.Context) {
@@ -59,7 +59,7 @@ func (h *Handler) SetupRoutes(router *gin.Engine) {
 		}
 
 		// Serve index.html for React routing
-		c.File("../frontend/build/index.html")
+		c.File("./frontend/build/index.html")
 	})
 }
 
