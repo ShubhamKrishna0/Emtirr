@@ -8,22 +8,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: KAFKA_BROKER
-        fromService:
-          type: redis
-          name: kafka-redis
-          property: connectionString
-
-  - type: worker
-    name: emitrr-analytics
-    env: node
-    plan: free
-    buildCommand: npm install
-    startCommand: cd backend && npm run analytics
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: KAFKA_BROKER
+      - key: REDIS_URL
         fromService:
           type: redis
           name: kafka-redis
