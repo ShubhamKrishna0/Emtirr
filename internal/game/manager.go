@@ -77,6 +77,16 @@ func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]in
 	}
 	log.Printf("Player joining: %s", username)
 
+	// Check for reconnectable game FIRST
+	gm.mu.Lock()
+	if reconnectGame := gm.findReconnectableGame(username); reconnectGame != nil {
+		gm.mu.Unlock()
+		log.Printf("Player %s reconnecting to game %s", username, reconnectGame.ID)
+		gm.HandlePlayerRejoin(conn, reconnectGame.ID, username)
+		return
+	}
+	gm.mu.Unlock()
+
 	player := &models.Player{
 		ID:       generatePlayerID(),
 		Username: username,
@@ -90,13 +100,6 @@ func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]in
 
 	gm.mu.Lock()
 	gm.playerSockets[player.ID] = playerConn
-
-	// Check for reconnectable game
-	if reconnectGame := gm.findReconnectableGame(username); reconnectGame != nil {
-		gm.mu.Unlock()
-		gm.HandlePlayerRejoin(conn, reconnectGame.ID, username)
-		return
-	}
 
 	// Try to match with waiting player
 	waitingPlayer := gm.findWaitingPlayer(username)
@@ -362,29 +365,45 @@ func (gm *GameManager) HandlePlayerRejoin(conn *websocket.Conn, gameID, username
 	defer gm.mu.Unlock()
 
 	game, exists := gm.games[gameID]
-	if !exists {
-		gm.sendError(conn, "No reconnectable game found")
+	if !exists || game.Status != "playing" {
+		gm.sendError(conn, "No active game found to rejoin")
 		return
 	}
 
 	playerID := generatePlayerID()
+	var playerNum int
+	
 	if game.Player1.Username == username {
 		game.Player1.ID = playerID
 		gm.playerSockets[playerID] = &PlayerConnection{Player: game.Player1, Conn: conn}
+		playerNum = 1
 	} else if game.Player2.Username == username {
 		game.Player2.ID = playerID
 		gm.playerSockets[playerID] = &PlayerConnection{Player: game.Player2, Conn: conn}
+		playerNum = 2
+	} else {
+		gm.sendError(conn, "You are not a player in this game")
+		return
 	}
 
+	// Remove from disconnected list
 	delete(gm.disconnectedPlayers, username)
 
 	rejoinData := map[string]interface{}{
 		"gameId":     game.ID,
 		"gameState":  game,
-		"yourPlayer": game.GetPlayerNumber(playerID),
+		"yourPlayer": playerNum,
 	}
 
 	gm.sendMessage(conn, "game_rejoined", rejoinData)
+	
+	// Notify other player about reconnection
+	gm.broadcastToGameExcept(game.ID, playerID, "player_reconnected", map[string]interface{}{
+		"player": username,
+		"message": username + " has reconnected!",
+	})
+
+	log.Printf("Player %s successfully rejoined game %s", username, gameID)
 
 	gm.analyticsService.TrackEvent("player_rejoined", map[string]interface{}{
 		"gameId": game.ID,
@@ -473,6 +492,15 @@ func (gm *GameManager) cleanupDisconnectedPlayers() {
 				}
 				game.Winner = &winner
 				game.Status = "finished"
+
+				log.Printf("Player %s forfeited after 30 seconds. Winner: %d", username, winner)
+				
+				// Notify remaining player
+				gm.broadcastToGameExcept(game.ID, "", "game_ended", map[string]interface{}{
+					"winner":    &winner,
+					"gameState": game,
+					"reason":    "opponent_disconnected",
+				})
 
 				gm.handleGameEnd(game)
 			}

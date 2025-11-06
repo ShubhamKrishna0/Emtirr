@@ -20,9 +20,30 @@ func NewBot() *Bot {
 }
 
 func (b *Bot) GetBestMove(game *models.Game) int {
-	depth := 6
+	// Adaptive depth based on game state
+	depth := b.getOptimalDepth(game.Board)
 	result := b.minimax(game.Board, depth, math.Inf(-1), math.Inf(1), true)
 	return result.Column
+}
+
+func (b *Bot) getOptimalDepth(board [][]int) int {
+	emptySpaces := 0
+	for i := 0; i < 6; i++ {
+		for j := 0; j < 7; j++ {
+			if board[i][j] == 0 {
+				emptySpaces++
+			}
+		}
+	}
+	
+	// Deeper search when fewer pieces on board
+	if emptySpaces > 35 {
+		return 7 // Early game - deeper search
+	} else if emptySpaces > 20 {
+		return 8 // Mid game - deepest search
+	} else {
+		return 9 // End game - maximum depth
+	}
 }
 
 type MinimaxResult struct {
@@ -84,18 +105,37 @@ func (b *Bot) minimax(board [][]int, depth int, alpha, beta float64, isMaximizin
 func (b *Bot) evaluateBoard(board [][]int) float64 {
 	score := 0.0
 
-	// Center column preference
+	// Strong center column preference (most important)
 	centerCol := 3
 	for row := 0; row < 6; row++ {
 		if board[row][centerCol] == 2 {
-			score += 3
+			score += 6 // Doubled importance
 		}
 		if board[row][centerCol] == 1 {
-			score -= 3
+			score -= 6
 		}
 	}
 
+	// Adjacent center columns also valuable
+	for row := 0; row < 6; row++ {
+		if board[row][2] == 2 || board[row][4] == 2 {
+			score += 4
+		}
+		if board[row][2] == 1 || board[row][4] == 1 {
+			score -= 4
+		}
+	}
+
+	// Evaluate all windows with enhanced scoring
 	score += b.evaluateWindows(board, 2) - b.evaluateWindows(board, 1)
+	
+	// Penalize edge columns heavily
+	for row := 0; row < 6; row++ {
+		if board[row][0] == 2 || board[row][6] == 2 {
+			score -= 2
+		}
+	}
+
 	return score
 }
 
@@ -158,16 +198,24 @@ func (b *Bot) scoreWindow(window []int, player int) float64 {
 		}
 	}
 
+	// Winning positions
 	if playerCount == 4 {
-		score += 1000
+		score += 10000 // Massive win bonus
 	} else if playerCount == 3 && emptyCount == 1 {
-		score += 100
+		score += 500 // Strong threat
 	} else if playerCount == 2 && emptyCount == 2 {
-		score += 10
+		score += 50 // Good position
+	} else if playerCount == 1 && emptyCount == 3 {
+		score += 5 // Potential
 	}
 
-	if opponentCount == 3 && emptyCount == 1 {
-		score -= 80
+	// Defensive positions - CRITICAL
+	if opponentCount == 4 {
+		score -= 10000 // Prevent loss
+	} else if opponentCount == 3 && emptyCount == 1 {
+		score -= 1000 // MUST block
+	} else if opponentCount == 2 && emptyCount == 2 {
+		score -= 100 // Block potential threat
 	}
 
 	return score
@@ -212,7 +260,7 @@ func (b *Bot) isBoardFull(board [][]int) bool {
 func (b *Bot) GetImmediateMove(game *models.Game) *int {
 	board := game.Board
 
-	// Check for winning move
+	// 1. Check for immediate winning move (HIGHEST PRIORITY)
 	for col := 0; col < 7; col++ {
 		if board[0][col] == 0 {
 			testBoard := b.makeMove(board, col, 2)
@@ -222,7 +270,7 @@ func (b *Bot) GetImmediateMove(game *models.Game) *int {
 		}
 	}
 
-	// Check for blocking move
+	// 2. Check for blocking opponent's winning move (CRITICAL)
 	for col := 0; col < 7; col++ {
 		if board[0][col] == 0 {
 			testBoard := b.makeMove(board, col, 1)
@@ -232,7 +280,39 @@ func (b *Bot) GetImmediateMove(game *models.Game) *int {
 		}
 	}
 
+	// 3. Check for creating double threats (ADVANCED)
+	for col := 0; col < 7; col++ {
+		if board[0][col] == 0 {
+			testBoard := b.makeMove(board, col, 2)
+			threats := b.countThreats(testBoard, 2)
+			if threats >= 2 {
+				return &col // Create multiple winning opportunities
+			}
+		}
+	}
+
+	// 4. Prefer center columns for strategic advantage
+	centerCols := []int{3, 2, 4, 1, 5, 0, 6}
+	for _, col := range centerCols {
+		if board[0][col] == 0 {
+			return &col
+		}
+	}
+
 	return nil
+}
+
+func (b *Bot) countThreats(board [][]int, player int) int {
+	threats := 0
+	for col := 0; col < 7; col++ {
+		if board[0][col] == 0 {
+			testBoard := b.makeMove(board, col, player)
+			if b.checkWinInBoard(testBoard, col, player) {
+				threats++
+			}
+		}
+	}
+	return threats
 }
 
 func (b *Bot) checkWinInBoard(board [][]int, col, player int) bool {

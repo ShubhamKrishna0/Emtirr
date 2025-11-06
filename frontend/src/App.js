@@ -110,11 +110,14 @@ function App() {
         case 'player_disconnected':
           setMessage(`${data.player} disconnected. They have ${data.reconnectTime} seconds to reconnect.`);
           break;
+        case 'player_reconnected':
+          setMessage(`${data.player} has reconnected!`);
+          break;
         case 'game_rejoined':
           setGameState(data.gameState);
           setGameStatus('playing');
           setYourPlayer(data.yourPlayer);
-          setMessage('Reconnected to game!');
+          setMessage('Successfully reconnected to your game!');
           break;
         case 'error':
           setMessage(`Error: ${data.message}`);
