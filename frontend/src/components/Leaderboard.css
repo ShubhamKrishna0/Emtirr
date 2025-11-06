@@ -22,20 +22,18 @@
 .refresh-btn,
 .retry-btn {
   padding: 8px 16px;
-  border: 1px solid #4ecdc4;
-  border-radius: 8px;
-  background: transparent;
-  color: #4ecdc4;
+  border: 1px solid #6366f1;
+  border-radius: 6px;
+  background: #6366f1;
+  color: #ffffff;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
 }
 
 .refresh-btn:hover,
 .retry-btn:hover {
-  background: #4ecdc4;
-  color: #1a1a2e;
-  transform: translateY(-1px);
+  background: #5855eb;
 }
 
 .loading,
@@ -61,10 +59,10 @@
 }
 
 .leaderboard-table {
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 12px;
+  background: #2a2a3a;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #4ecdc4;
+  border: 1px solid #404040;
 }
 
 .leaderboard-table::before {
@@ -91,12 +89,12 @@
 }
 
 .table-header {
-  background: rgba(0, 0, 0, 0.3);
-  font-weight: bold;
-  font-size: 0.9rem;
+  background: #1e1e2e;
+  font-weight: 600;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #4ecdc4;
+  color: #9ca3af;
 }
 
 .table-row {
@@ -106,7 +104,7 @@
 }
 
 .table-row:hover {
-  background: rgba(78, 205, 196, 0.1);
+  background: rgba(99, 102, 241, 0.05);
 }
 
 .table-row:last-child {
@@ -120,14 +118,14 @@
 }
 
 .username {
-  font-weight: bold;
-  color: #4ecdc4;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .wins {
   text-align: center;
-  font-weight: bold;
-  color: #2ecc71;
+  font-weight: 600;
+  color: #10b981;
 }
 
 .games {

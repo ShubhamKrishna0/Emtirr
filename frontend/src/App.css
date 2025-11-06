@@ -1,9 +1,9 @@
 .App {
   text-align: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+  background: #1e1e2e;
   color: #ffffff;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
 }
 
@@ -19,9 +19,8 @@
 
 .App-header {
   padding: 20px;
-  background: rgba(0, 0, 0, 0.3);
-  border-bottom: 2px solid #4ecdc4;
-  box-shadow: 0 2px 10px rgba(78, 205, 196, 0.2);
+  background: #2a2a3a;
+  border-bottom: 1px solid #404040;
 }
 
 .App-header::before {
@@ -59,11 +58,10 @@
 
 .App-header h1 {
   margin: 0;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: 600;
-  color: #4ecdc4;
-  text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
-  font-family: 'Orbitron', monospace;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
 }
 
 .App-header h1::before {
@@ -119,14 +117,13 @@
 
 /* Menu Styles */
 .menu {
-  background: rgba(0, 0, 0, 0.6);
-  border: 2px solid #4ecdc4;
-  border-radius: 15px;
+  background: #2a2a3a;
+  border: 1px solid #404040;
+  border-radius: 8px;
   padding: 30px;
   margin: 0 auto;
   max-width: 400px;
-  box-shadow: 0 4px 20px rgba(78, 205, 196, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .menu::before {
@@ -189,13 +186,13 @@
   flex: 1;
   min-width: 200px;
   padding: 12px 16px;
-  border: 1px solid #4ecdc4;
-  border-radius: 8px;
+  border: 1px solid #404040;
+  border-radius: 6px;
   font-size: 1rem;
-  background: #1a1a2e;
+  background: #1e1e2e;
   color: #ffffff;
   transition: all 0.2s ease;
-  font-family: 'Orbitron', monospace;
+  font-family: 'Inter', sans-serif;
 }
 
 .username-input input::placeholder {
@@ -205,23 +202,23 @@
 
 .username-input input:focus {
   outline: none;
-  border-color: #4ecdc4;
-  box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.3);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .username-input button,
 .leaderboard-btn,
 .new-game-btn {
   padding: 12px 24px;
-  border: 1px solid #4ecdc4;
-  border-radius: 8px;
+  border: 1px solid #6366f1;
+  border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 500;
-  background: transparent;
-  color: #4ecdc4;
+  background: #6366f1;
+  color: #ffffff;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Orbitron', monospace;
+  font-family: 'Inter', sans-serif;
 }
 
 .username-input button::before,
@@ -246,8 +243,7 @@
 .username-input button:hover,
 .leaderboard-btn:hover,
 .new-game-btn:hover {
-  background: #4ecdc4;
-  color: #1a1a2e;
+  background: #5855eb;
   transform: translateY(-1px);
 }
 
@@ -283,11 +279,11 @@
 /* Waiting Styles */
 .waiting {
   text-align: center;
-  padding: 50px;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 15px;
-  border: 2px solid #4ecdc4;
-  box-shadow: 0 4px 20px rgba(78, 205, 196, 0.1);
+  padding: 40px;
+  background: #2a2a3a;
+  border-radius: 8px;
+  border: 1px solid #404040;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .waiting::before {
@@ -317,13 +313,13 @@
 }
 
 .spinner {
-  width: 60px;
-  height: 60px;
-  border: 6px solid rgba(255, 255, 255, 0.2);
-  border-top: 6px solid #4ecdc4;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #6366f1;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 30px auto;
+  margin: 20px auto;
 }
 
 .spinner::before {
@@ -372,10 +368,10 @@
 
 .game-info {
   text-align: center;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 12px;
+  background: #2a2a3a;
+  border-radius: 8px;
   padding: 20px;
-  border: 1px solid #4ecdc4;
+  border: 1px solid #404040;
 }
 
 .game-info::before {
@@ -461,10 +457,10 @@
 /* Leaderboard Container */
 .leaderboard-container {
   margin-top: 40px;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 15px;
+  background: #2a2a3a;
+  border-radius: 8px;
   padding: 30px;
-  border: 1px solid #4ecdc4;
+  border: 1px solid #404040;
 }
 
 .leaderboard-container::before {
@@ -484,10 +480,9 @@
 /* Gaming UI Enhancements */
 .subtitle {
   font-size: 0.9rem;
-  color: #4ecdc4;
+  color: #9ca3af;
   margin: 10px 0 20px 0;
   font-weight: 400;
-  opacity: 0.8;
 }
 
 .gamer-input {
@@ -539,9 +534,9 @@
 }
 
 .waiting-message {
-  font-size: 1.1rem;
-  color: #4ecdc4;
-  margin: 20px 0;
+  font-size: 1rem;
+  color: #9ca3af;
+  margin: 15px 0;
 }
 
 .loading-dots {
@@ -552,9 +547,9 @@
 }
 
 .loading-dots span {
-  width: 8px;
-  height: 8px;
-  background: #4ecdc4;
+  width: 6px;
+  height: 6px;
+  background: #6366f1;
   border-radius: 50%;
   animation: dotPulse 1.5s ease-in-out infinite;
 }

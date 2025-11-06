@@ -9,11 +9,11 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
-  background: rgba(0, 0, 0, 0.8);
+  background: #2a2a3a;
   padding: 20px;
-  border-radius: 12px;
-  border: 2px solid #4ecdc4;
-  box-shadow: 0 4px 20px rgba(78, 205, 196, 0.1);
+  border-radius: 8px;
+  border: 1px solid #404040;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes boardPulse {
@@ -45,9 +45,8 @@
 }
 
 .column.clickable:hover {
-  background: rgba(78, 205, 196, 0.2);
-  transform: translateY(-2px);
-  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
 }
 
 .column.clickable:hover .cell {
@@ -62,8 +61,8 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  background: #1a1a2e;
-  border: 1px solid #333;
+  background: #1e1e2e;
+  border: 1px solid #404040;
   transition: all 0.2s ease;
 }
 
@@ -81,9 +80,9 @@
 }
 
 .cell.player1 .disc {
-  background: #ff6b6b;
-  border: 1px solid #e74c3c;
-  animation: dropIn 0.4s ease-out;
+  background: #ef4444;
+  border: 1px solid #dc2626;
+  animation: dropIn 0.3s ease-out;
 }
 
 .cell.player1 .disc::before {
@@ -99,9 +98,9 @@
 }
 
 .cell.player2 .disc {
-  background: #4ecdc4;
-  border: 1px solid #45b7d1;
-  animation: dropIn 0.4s ease-out;
+  background: #3b82f6;
+  border: 1px solid #2563eb;
+  animation: dropIn 0.3s ease-out;
 }
 
 .cell.player2 .disc::before {
@@ -152,10 +151,10 @@
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 12px;
+  background: #2a2a3a;
+  border-radius: 8px;
   padding: 20px;
-  border: 1px solid #4ecdc4;
+  border: 1px solid #404040;
   min-width: 300px;
 }
 
@@ -190,13 +189,13 @@
 }
 
 .player-indicator.active {
-  background: rgba(78, 205, 196, 0.2);
-  box-shadow: 0 0 15px rgba(78, 205, 196, 0.3);
-  transform: scale(1.05);
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid #6366f1;
 }
 
 .player-indicator.you {
-  border: 2px solid rgba(255, 215, 0, 0.6);
+  border: 1px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
 }
 
 .player-disc {
@@ -225,8 +224,8 @@
 }
 
 .your-turn {
-  color: #2ecc71;
-  animation: pulse 2s infinite;
+  color: #10b981;
+  font-weight: 600;
 }
 
 @keyframes textGlow {
@@ -235,7 +234,7 @@
 }
 
 .opponent-turn {
-  color: #f39c12;
+  color: #9ca3af;
 }
 
 @keyframes opponentPulse {
