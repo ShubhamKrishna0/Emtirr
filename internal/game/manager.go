@@ -377,10 +377,24 @@ func (gm *GameManager) HandlePlayerRejoin(conn *websocket.Conn, gameID, username
 	
 	// Update the game's player ID and connection
 	if game.Player1.Username == username {
+		// Clean up old player connection if exists
+		for oldID, oldConn := range gm.playerSockets {
+			if oldConn.Player.Username == username {
+				delete(gm.playerSockets, oldID)
+				break
+			}
+		}
 		game.Player1.ID = newPlayerID // Update ID in game object
 		gm.playerSockets[newPlayerID] = &PlayerConnection{Player: game.Player1, Conn: conn}
 		playerNum = 1
 	} else if game.Player2.Username == username {
+		// Clean up old player connection if exists
+		for oldID, oldConn := range gm.playerSockets {
+			if oldConn.Player.Username == username {
+				delete(gm.playerSockets, oldID)
+				break
+			}
+		}
 		game.Player2.ID = newPlayerID // Update ID in game object  
 		gm.playerSockets[newPlayerID] = &PlayerConnection{Player: game.Player2, Conn: conn}
 		playerNum = 2
