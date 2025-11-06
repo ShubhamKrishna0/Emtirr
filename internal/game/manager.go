@@ -228,16 +228,6 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 		return
 	}
 
-	// Get player info for validation
-	gm.mu.RLock()
-	playerConn, playerExists := gm.playerSockets[playerID]
-	gm.mu.RUnlock()
-	
-	if !playerExists {
-		gm.sendError(conn, "Player connection not found")
-		return
-	}
-
 	// Use the standard game logic (now works because we update player ID on reconnection)
 	row, gameOver, _, err := game.MakeMove(column, playerID)
 	if err != nil {
