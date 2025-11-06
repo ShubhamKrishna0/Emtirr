@@ -34,6 +34,7 @@ function App() {
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       const { type, data } = message;
+      console.log('Received WebSocket message:', { type, data });
       
       switch (type) {
         case 'waiting_for_opponent':
@@ -93,19 +94,26 @@ function App() {
 
   const joinGame = () => {
     if (username.trim() && socket && socket.readyState === WebSocket.OPEN) {
+      console.log('Sending join_game message:', username.trim());
       socket.send(JSON.stringify({
         type: 'join_game',
         data: { username: username.trim() }
       }));
+    } else {
+      console.log('Cannot join game:', { username: username.trim(), socket, readyState: socket?.readyState });
     }
   };
 
   const makeMove = (column) => {
+    console.log('makeMove called:', { column, gameState, gameStatus, currentPlayer: gameState?.currentPlayer, yourPlayer });
     if (gameState && gameStatus === 'playing' && gameState.currentPlayer === yourPlayer && socket && socket.readyState === WebSocket.OPEN) {
+      console.log('Sending move:', { gameId: gameState.id, column });
       socket.send(JSON.stringify({
         type: 'make_move',
         data: { gameId: gameState.id, column }
       }));
+    } else {
+      console.log('Cannot make move - conditions not met');
     }
   };
 
