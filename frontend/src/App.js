@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import GameBoard from './components/GameBoard';
 import Leaderboard from './components/Leaderboard';
+import ParticleBackground from './components/ParticleBackground';
 
 import './App.css';
 
@@ -14,6 +15,8 @@ function App() {
   const [message, setMessage] = useState('');
   const [yourPlayer, setYourPlayer] = useState(null);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [disconnectedGameId, setDisconnectedGameId] = useState(null);
+  const [reconnectAttempted, setReconnectAttempted] = useState(false);
 
   useEffect(() => {
     let reconnectTimer = null;
@@ -33,11 +36,32 @@ function App() {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
       }
+      
+      // Auto-reconnect if we have stored game info
+      const storedUsername = localStorage.getItem('gameUsername');
+      const storedGameId = localStorage.getItem('gameId');
+      if (storedUsername && storedGameId && !reconnectAttempted) {
+        setReconnectAttempted(true);
+        setUsername(storedUsername);
+        setDisconnectedGameId(storedGameId);
+        console.log('Attempting auto-reconnect:', { username: storedUsername, gameId: storedGameId });
+        socket.send(JSON.stringify({
+          type: 'rejoin_game',
+          data: { username: storedUsername, gameId: storedGameId }
+        }));
+      }
     };
     
     socket.onclose = () => {
       setIsConnected(false);
       console.log('WebSocket closed');
+      
+      // Store game info for reconnection if we're in a game
+      if (gameState && gameStatus === 'playing') {
+        localStorage.setItem('gameUsername', username);
+        localStorage.setItem('gameId', gameState.id);
+        setMessage('Connection lost. Attempting to reconnect...');
+      }
       
       // Always try to reconnect
       if (!reconnectTimer) {
@@ -83,6 +107,9 @@ function App() {
           setGameStatus('playing');
           setYourPlayer(data.yourPlayer);
           setMessage(`Game started! You are Player ${data.yourPlayer}`);
+          // Store game info for reconnection
+          localStorage.setItem('gameUsername', username);
+          localStorage.setItem('gameId', data.gameState.id);
           break;
         case 'your_turn':
           setYourPlayer(data.player);
@@ -99,6 +126,9 @@ function App() {
         case 'game_ended':
           setGameState(data.gameState);
           setGameStatus('finished');
+          // Clear stored game info
+          localStorage.removeItem('gameUsername');
+          localStorage.removeItem('gameId');
           if (data.winner === null) {
             setMessage('Game ended in a draw!');
           } else if (data.winner === yourPlayer) {
@@ -118,6 +148,10 @@ function App() {
           setGameStatus('playing');
           setYourPlayer(data.yourPlayer);
           setMessage('Successfully reconnected to your game!');
+          setDisconnectedGameId(null);
+          // Update stored game info
+          localStorage.setItem('gameUsername', username);
+          localStorage.setItem('gameId', data.gameState.id);
           break;
         case 'error':
           setMessage(`Error: ${data.message}`);
@@ -137,6 +171,16 @@ function App() {
       }));
     } else {
       console.log('Cannot join game:', { username: username.trim(), socket, readyState: socket?.readyState });
+    }
+  };
+
+  const rejoinGame = () => {
+    if (username.trim() && disconnectedGameId && socket && socket.readyState === WebSocket.OPEN) {
+      console.log('Attempting to rejoin game:', { username: username.trim(), gameId: disconnectedGameId });
+      socket.send(JSON.stringify({
+        type: 'rejoin_game',
+        data: { username: username.trim(), gameId: disconnectedGameId }
+      }));
     }
   };
 
@@ -165,6 +209,11 @@ function App() {
     setGameStatus('menu');
     setMessage('');
     setYourPlayer(null);
+    setDisconnectedGameId(null);
+    setReconnectAttempted(false);
+    // Clear stored game info
+    localStorage.removeItem('gameUsername');
+    localStorage.removeItem('gameId');
   };
 
   const toggleLeaderboard = () => {
@@ -173,6 +222,7 @@ function App() {
 
   return (
     <div className="App">
+      <ParticleBackground />
 
       <header className="App-header">
         <h1>⚡ 4 in a Row 🎯</h1>
@@ -184,31 +234,51 @@ function App() {
       <main className="App-main">
         {gameStatus === 'menu' && (
           <div className="menu">
-            <h2>🚀 Welcome to 4 in a Row! 🎮</h2>
+            <h2>🚀 ENTER THE ARENA 🎮</h2>
+            <p className="subtitle">⚡ CONNECT FOUR TO DOMINATE ⚡</p>
+            {disconnectedGameId && (
+              <div className="reconnect-section">
+                <h3>🔄 Reconnect to Game</h3>
+                <p>You have an active game waiting for you!</p>
+                <button onClick={rejoinGame} disabled={!username.trim()} className="rejoin-btn">
+                  🔄 Rejoin Game
+                </button>
+                <button onClick={() => setDisconnectedGameId(null)} className="new-game-btn">
+                  🆕 Start New Game Instead
+                </button>
+              </div>
+            )}
             <div className="username-input">
               <input
                 type="text"
-                placeholder="Enter username... 👤"
+                placeholder="⚡ ENTER GAMER TAG ⚡"
+                className="gamer-input"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && joinGame()}
+                onKeyPress={(e) => e.key === 'Enter' && (disconnectedGameId ? rejoinGame() : joinGame())}
                 maxLength={20}
               />
-              <button onClick={joinGame} disabled={!username.trim()}>
-                🚀 Join Game
+              <button onClick={disconnectedGameId ? rejoinGame : joinGame} disabled={!username.trim()}>
+                {disconnectedGameId ? '🔄 REJOIN BATTLE' : '🚀 LAUNCH GAME'}
               </button>
             </div>
             <button onClick={toggleLeaderboard} className="leaderboard-btn">
-              {showLeaderboard ? '🙈 Hide Leaderboard' : '🏆 Show Leaderboard'}
+              {showLeaderboard ? '🙈 HIDE RANKINGS' : '🏆 VIEW RANKINGS'}
             </button>
           </div>
         )}
 
         {gameStatus === 'waiting' && (
           <div className="waiting">
-            <h2>🔍 Finding Opponent...</h2>
-            <div className="spinner"></div>
-            <p>🤖 {message}</p>
+            <h2>⚡ SCANNING FOR OPPONENTS ⚡</h2>
+            <div className="spinner-container">
+              <div className="spinner"></div>
+              <div className="scanner-line"></div>
+            </div>
+            <p className="waiting-message">🤖 {message}</p>
+            <div className="loading-dots">
+              <span></span><span></span><span></span>
+            </div>
           </div>
         )}
 
@@ -222,7 +292,7 @@ function App() {
               <p className="game-message">{message}</p>
               {gameStatus === 'finished' && (
                 <button onClick={startNewGame} className="new-game-btn">
-                  🆕 New Game
+                  🆕 NEXT BATTLE
                 </button>
               )}
             </div>
