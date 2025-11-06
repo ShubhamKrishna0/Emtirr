@@ -3,7 +3,6 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"path/filepath"
 	"strconv"
 
 	"four-in-a-row/internal/game"
