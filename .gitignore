@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 client/node_modules/
+frontend/node_modules/
 
 # Production builds
 client/build/
@@ -12,9 +13,11 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+frontend/.env
 
 # Production environment template (commit this)
 !.env.example
+!frontend/.env.example
 
 # Logs
 npm-debug.log*

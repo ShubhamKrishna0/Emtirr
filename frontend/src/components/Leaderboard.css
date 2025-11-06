@@ -1,0 +1,267 @@
+.leaderboard {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.leaderboard-header h3 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+.refresh-btn,
+.retry-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.refresh-btn:hover,
+.retry-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.loading,
+.error,
+.no-data {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+.retry-btn {
+  margin-top: 10px;
+  background: #ff6b6b;
+}
+
+.retry-btn:hover {
+  background: #ff5252;
+}
+
+.leaderboard-table {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 80px 80px 100px 120px;
+  gap: 15px;
+  padding: 15px 20px;
+  align-items: center;
+}
+
+.table-header {
+  background: rgba(0, 0, 0, 0.3);
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.table-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.table-row:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.rank {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.username {
+  font-weight: bold;
+  color: #4ecdc4;
+}
+
+.wins {
+  text-align: center;
+  font-weight: bold;
+  color: #2ecc71;
+}
+
+.games {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.winrate {
+  text-align: center;
+  font-weight: bold;
+}
+
+.last-played {
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Rank styling */
+.table-row:nth-child(2) .rank {
+  color: #ffd700; /* Gold */
+}
+
+.table-row:nth-child(3) .rank {
+  color: #c0c0c0; /* Silver */
+}
+
+.table-row:nth-child(4) .rank {
+  color: #cd7f32; /* Bronze */
+}
+
+/* Win rate color coding */
+.winrate {
+  color: #ff6b6b; /* Default red for low win rates */
+}
+
+.table-row .winrate {
+  color: #f39c12; /* Orange for medium win rates */
+}
+
+/* This would be applied via JavaScript based on win rate value */
+.high-winrate {
+  color: #2ecc71 !important; /* Green for high win rates */
+}
+
+.medium-winrate {
+  color: #f39c12 !important; /* Orange for medium win rates */
+}
+
+.low-winrate {
+  color: #ff6b6b !important; /* Red for low win rates */
+}
+
+/* Mobile phones (320px - 480px) */
+@media (max-width: 480px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 35px 1fr 45px 60px;
+    gap: 6px;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+  }
+  
+  .games,
+  .last-played {
+    display: none;
+  }
+  
+  .leaderboard-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .leaderboard-header h3 {
+    font-size: 1.2rem;
+  }
+  
+  .rank {
+    font-size: 0.9rem;
+  }
+}
+
+/* Large phones / Small tablets (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 45px 1fr 55px 55px 75px;
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .last-played {
+    display: none;
+  }
+  
+  .leaderboard-header h3 {
+    font-size: 1.4rem;
+  }
+}
+
+/* Tablets (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 50px 1fr 65px 65px 85px 110px;
+    gap: 12px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .leaderboard-header h3 {
+    font-size: 1.6rem;
+  }
+}
+
+/* Laptops (1025px - 1440px) */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 60px 1fr 80px 80px 100px 120px;
+    gap: 15px;
+    padding: 15px 20px;
+    font-size: 1rem;
+  }
+  
+  .leaderboard-header h3 {
+    font-size: 1.8rem;
+  }
+}
+
+/* Large screens / TVs (1441px+) */
+@media (min-width: 1441px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 70px 1fr 90px 90px 110px 140px;
+    gap: 20px;
+    padding: 18px 25px;
+    font-size: 1.1rem;
+  }
+  
+  .leaderboard-header h3 {
+    font-size: 2rem;
+  }
+  
+  .rank {
+    font-size: 1.2rem;
+  }
+}
