@@ -30,6 +30,11 @@ function App() {
     socket.onclose = (event) => {
       setIsConnected(false);
       console.log('WebSocket disconnected:', event.code);
+      
+      // Reconnect immediately if game is active
+      if (gameStatus === 'playing' || gameStatus === 'waiting') {
+        setTimeout(connectWebSocket, 1000);
+      }
     };
     
     socket.onerror = (error) => {
@@ -37,6 +42,8 @@ function App() {
     };
     };
     
+    // Make connectWebSocket available globally
+    window.connectWebSocket = connectWebSocket;
     connectWebSocket();
     
     socket.onmessage = (event) => {
@@ -116,7 +123,17 @@ function App() {
 
   const makeMove = (column) => {
     console.log('makeMove called:', { column, gameState, gameStatus, currentPlayer: gameState?.currentPlayer, yourPlayer });
-    if (gameState && gameStatus === 'playing' && gameState.currentPlayer === yourPlayer && socket && socket.readyState === WebSocket.OPEN) {
+    
+    // Reconnect if disconnected
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.log('WebSocket not ready, reconnecting...');
+      if (window.connectWebSocket) {
+        window.connectWebSocket();
+      }
+      return;
+    }
+    
+    if (gameState && gameStatus === 'playing' && gameState.currentPlayer === yourPlayer) {
       console.log('Sending move:', { gameId: gameState.id, column });
       socket.send(JSON.stringify({
         type: 'make_move',
