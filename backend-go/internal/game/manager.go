@@ -107,6 +107,7 @@ func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]in
 	} else {
 		gm.waitingPlayers[player.ID] = playerConn
 		gm.mu.Unlock()
+		log.Printf("Sending waiting_for_opponent to player %s", username)
 		gm.sendMessage(conn, "waiting_for_opponent", nil)
 
 		// Start bot game after 10 seconds
@@ -184,6 +185,7 @@ func (gm *GameManager) createBotGame(playerConn *PlayerConnection) {
 		"yourPlayer": 1,
 	}
 
+	log.Printf("Sending game_started to player %s", playerConn.Player.Username)
 	gm.sendMessage(playerConn.Conn, "game_started", gameState)
 
 	gm.analyticsService.TrackEvent("game_started", map[string]interface{}{
@@ -539,8 +541,11 @@ func (gm *GameManager) sendMessage(conn *websocket.Conn, messageType string, dat
 		"data": data,
 	}
 
+	log.Printf("Sending WebSocket message: type=%s, data=%+v", messageType, data)
 	if err := conn.WriteJSON(message); err != nil {
-		log.Printf("Failed to send message: %v", err)
+		log.Printf("Failed to send message %s: %v", messageType, err)
+	} else {
+		log.Printf("Successfully sent message: %s", messageType)
 	}
 }
 
