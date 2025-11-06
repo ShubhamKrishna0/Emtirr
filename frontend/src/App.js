@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import io from 'socket.io-client';
 import GameBoard from './components/GameBoard';
 import Leaderboard from './components/Leaderboard';
 
 import './App.css';
 
-const socket = io(window.location.origin);
+let socket = null;
 
 function App() {
   const [gameState, setGameState] = useState(null);
@@ -17,94 +16,96 @@ function App() {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
-    // Socket event listeners
-    socket.on('connect', () => {
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
+    
+    socket = new WebSocket(wsUrl);
+    
+    socket.onopen = () => {
       setIsConnected(true);
       console.log('Connected to server');
-    });
-
-    socket.on('disconnect', () => {
+    };
+    
+    socket.onclose = () => {
       setIsConnected(false);
       console.log('Disconnected from server');
-    });
-
-    socket.on('waiting_for_opponent', () => {
-      setGameStatus('waiting');
-      setMessage('Waiting for opponent... (Bot will join in 10 seconds)');
-    });
-
-    socket.on('game_started', (data) => {
-      setGameState(data.gameState);
-      setGameStatus('playing');
-      setYourPlayer(data.yourPlayer);
-      setMessage(`Game started! You are Player ${data.yourPlayer}`);
-    });
-
-    socket.on('your_turn', (data) => {
-      setYourPlayer(data.player);
-    });
-
-    socket.on('move_made', (data) => {
-      setGameState(data.gameState);
-      const currentPlayer = data.gameState.currentPlayer;
-      if (currentPlayer === yourPlayer) {
-        setMessage('Your turn!');
-      } else {
-        setMessage(`Player ${data.player} played. ${data.gameState.isBot && currentPlayer === 2 ? 'Bot is thinking...' : 'Waiting for opponent...'}`);
-      }
-    });
-
-    socket.on('game_ended', (data) => {
-      setGameState(data.gameState);
-      setGameStatus('finished');
+    };
+    
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      const { type, data } = message;
       
-      if (data.winner === null) {
-        setMessage('Game ended in a draw!');
-      } else if (data.winner === yourPlayer) {
-        setMessage('🎉 You won!');
-      } else {
-        setMessage(`😔 You lost. Player ${data.winner} won!`);
+      switch (type) {
+        case 'waiting_for_opponent':
+          setGameStatus('waiting');
+          setMessage('Waiting for opponent... (Bot will join in 10 seconds)');
+          break;
+        case 'game_started':
+          setGameState(data.gameState);
+          setGameStatus('playing');
+          setYourPlayer(data.yourPlayer);
+          setMessage(`Game started! You are Player ${data.yourPlayer}`);
+          break;
+        case 'your_turn':
+          setYourPlayer(data.player);
+          break;
+        case 'move_made':
+          setGameState(data.gameState);
+          const currentPlayer = data.gameState.currentPlayer;
+          if (currentPlayer === yourPlayer) {
+            setMessage('Your turn!');
+          } else {
+            setMessage(`Player ${data.player} played. ${data.gameState.isBot && currentPlayer === 2 ? 'Bot is thinking...' : 'Waiting for opponent...'}`);
+          }
+          break;
+        case 'game_ended':
+          setGameState(data.gameState);
+          setGameStatus('finished');
+          if (data.winner === null) {
+            setMessage('Game ended in a draw!');
+          } else if (data.winner === yourPlayer) {
+            setMessage('🎉 You won!');
+          } else {
+            setMessage(`😔 You lost. Player ${data.winner} won!`);
+          }
+          break;
+        case 'player_disconnected':
+          setMessage(`${data.player} disconnected. They have ${data.reconnectTime} seconds to reconnect.`);
+          break;
+        case 'game_rejoined':
+          setGameState(data.gameState);
+          setGameStatus('playing');
+          setYourPlayer(data.yourPlayer);
+          setMessage('Reconnected to game!');
+          break;
+        case 'error':
+          setMessage(`Error: ${data.message}`);
+          break;
       }
-    });
-
-    socket.on('player_disconnected', (data) => {
-      setMessage(`${data.player} disconnected. They have ${data.reconnectTime} seconds to reconnect.`);
-    });
-
-    socket.on('game_rejoined', (data) => {
-      setGameState(data.gameState);
-      setGameStatus('playing');
-      setYourPlayer(data.yourPlayer);
-      setMessage('Reconnected to game!');
-    });
-
-    socket.on('error', (data) => {
-      setMessage(`Error: ${data.message}`);
-    });
-
+    };
+    
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('waiting_for_opponent');
-      socket.off('game_started');
-      socket.off('your_turn');
-      socket.off('move_made');
-      socket.off('game_ended');
-      socket.off('player_disconnected');
-      socket.off('game_rejoined');
-      socket.off('error');
+      if (socket) {
+        socket.close();
+      }
     };
   }, [yourPlayer]);
 
   const joinGame = () => {
-    if (username.trim()) {
-      socket.emit('join_game', { username: username.trim() });
+    if (username.trim() && socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: 'join_game',
+        data: { username: username.trim() }
+      }));
     }
   };
 
   const makeMove = (column) => {
-    if (gameState && gameStatus === 'playing' && gameState.currentPlayer === yourPlayer) {
-      socket.emit('make_move', { gameId: gameState.id, column });
+    if (gameState && gameStatus === 'playing' && gameState.currentPlayer === yourPlayer && socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: 'make_move',
+        data: { gameId: gameState.id, column }
+      }));
     }
   };
 
