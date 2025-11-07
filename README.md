@@ -1,11 +1,19 @@
 # ⚡ 4 in a Row - Real-time Multiplayer Game 🎯
 
-A professional Connect Four game with real-time multiplayer, competitive AI bot, and Redis analytics system built with **Go backend** and React frontend.
+<div align="center">
+  <img src="pic/go.png" width="80" alt="Go">
+  <img src="pic/react.png" width="80" alt="React">
+  <img src="pic/psql.png" width="80" alt="PostgreSQL">
+  <img src="pic/kafka.png" width="80" alt="Kafka">
+  <img src="pic/render.png" width="80" alt="Render">
+</div>
+
+A professional Connect Four game with real-time multiplayer, competitive AI bot, and analytics system built with **Go backend** and React frontend.
 
 ## 🚀 Live Demo
 
-- **🎮 Play Game**: [https://emitrr-4-in-a-row.onrender.com](https://emitrr-4-in-a-row.onrender.com)
-- **📊 Live Analytics**: [https://emitrr-4-in-a-row.onrender.com/api/analytics](https://emitrr-4-in-a-row.onrender.com/api/analytics)
+- **🎮 Play Game**: [https://emitrr-4-in-a-row-2tzn.onrender.com](https://emitrr-4-in-a-row-2tzn.onrender.com)
+- **📊 Live Analytics**: [https://emitrr-4-in-a-row-2tzn.onrender.com/api/analytics](https://emitrr-4-in-a-row-2tzn.onrender.com/api/analytics)
 - **📁 GitHub Repo**: [https://github.com/ShubhamKrishna0/Emtirr.git](https://github.com/ShubhamKrishna0/Emtirr.git)
 
 ## 🎯 Features
@@ -18,42 +26,65 @@ A professional Connect Four game with real-time multiplayer, competitive AI bot,
 ✅ **Live Metrics** - Game duration, win rates, player stats  
 ✅ **Production Ready** - Deployed on Render with full scaling  
 
-## 🏗️ Architecture
+## 🏗️ Tech Stack
 
-```
-Frontend (React)     Backend (Go)          Database & Analytics
-     │                      │                       │
-     ├─ WebSocket ──────────┼─ Gin Server           ├─ PostgreSQL
-     ├─ Game Board          ├─ Game Manager         ├─ Redis (Analytics)
-     ├─ Leaderboard         ├─ AI Bot Logic         └─ Real-time Metrics
-     └─ Real-time UI        └─ Analytics Service
-```
+<table>
+<tr>
+<td><img src="pic/go.png" width="40"> <strong>Backend</strong></td>
+<td>Go with Gin framework, WebSocket support</td>
+</tr>
+<tr>
+<td><img src="pic/react.png" width="40"> <strong>Frontend</strong></td>
+<td>React with real-time WebSocket integration</td>
+</tr>
+<tr>
+<td><img src="pic/psql.png" width="40"> <strong>Database</strong></td>
+<td>PostgreSQL for game persistence & leaderboard</td>
+</tr>
+<tr>
+<td><img src="pic/kafka.png" width="40"> <strong>Analytics</strong></td>
+<td>Kafka (local) / Redis (production) event streaming</td>
+</tr>
+<tr>
+<td><img src="pic/render.png" width="40"> <strong>Deployment</strong></td>
+<td>Render cloud platform with auto-scaling</td>
+</tr>
+</table>
 
 ## 🚀 Quick Start
 
-### For Teacher Demo (Kafka)
+### 🐧 Linux/macOS Setup
 ```bash
-# Start Kafka & PostgreSQL
-docker-compose up -d
+# Clone repository
+git clone https://github.com/ShubhamKrishna0/Emtirr.git
+cd Emtirr
 
-# Setup environment
+# For Local Development (with Kafka)
+docker-compose up -d
 cp .env.example .env
 
-# Run application
+# Build and run
 go mod tidy
-cd frontend && npm install && npm run build
-cd .. && go run .
+cd frontend && npm install && npm run build && cd ..
+go run .
 ```
 
-### For Production (Redis)
-```bash
-# No Docker needed
+### 🪟 Windows Setup
+```cmd
+# Clone repository
+git clone https://github.com/ShubhamKrishna0/Emtirr.git
+cd Emtirr
+
+# For Local Development
+copy .env.example .env
+
+# Build and run
 go mod tidy
-cd frontend && npm install && npm run build
-cd .. && go run .
+cd frontend && npm install && npm run build && cd ..
+go run .
 ```
 
-**Game available at**: `http://localhost:3001`
+**🎮 Game available at**: `http://localhost:3001`
 
 ## 🎮 How to Play
 
@@ -63,54 +94,37 @@ cd .. && go run .
 4. **Win Condition** - Connect 4 discs horizontally, vertically, or diagonally
 5. **View Stats** - Check leaderboard for rankings
 
-## 📊 Analytics System
+## 📊 Analytics & Monitoring
 
-### 🔥 Dual Analytics Support
-**Local Demo (Kafka)**:
-- Producer → `game-analytics` topic
-- Consumer processes events
-- Shows event streaming architecture
+### 🔥 Dual Analytics Architecture
+| Environment | Technology | Purpose |
+|-------------|------------|----------|
+| **Local/Demo** | <img src="pic/kafka.png" width="20"> Kafka | Event streaming demonstration |
+| **Production** | Redis | Optimized cloud deployment |
 
-**Production (Redis)**:
-- Events → Redis queue `game-events`
-- In-process consumer
-- Optimized for Render deployment
+### 📈 Real-Time Metrics
+- ⚡ **Game Events**: Start, moves, end, duration
+- 👥 **Player Stats**: Win rates, activity patterns  
+- 🤖 **AI Performance**: Bot decision analysis
+- 🔧 **System Health**: Connection stability
 
-### Real-Time Event Tracking
-- **Game Events**: Start, moves, end, duration
-- **Player Metrics**: Win rates, activity patterns
-- **Bot Performance**: Decision patterns, effectiveness
-- **System Health**: Connection stability, response times
-
-### View Analytics
-- **API Endpoint**: `/api/analytics`
-- **Live Logs**: Check console for real-time events
+**📊 View Live Analytics**: [/api/analytics](https://emitrr-4-in-a-row-2tzn.onrender.com/api/analytics)
 
 ## 🚀 Production Deployment
 
-### Deploy to Render
+<img src="pic/render.png" width="30"> **Deployed on Render Cloud**
 
-1. **Push to GitHub**:
-```bash
-git add .
-git commit -m "Deploy to production"
-git push origin main
-```
+### Auto-Deploy Setup
+1. Fork repository: [github.com/ShubhamKrishna0/Emtirr](https://github.com/ShubhamKrishna0/Emtirr.git)
+2. Connect to [render.com](https://render.com)
+3. Render auto-detects `render.yaml` configuration
+4. Services auto-created:
+   - 🌐 Web Service (Go app)
+   - 🗄️ PostgreSQL Database  
+   - ⚡ Redis (Analytics)
 
-2. **Connect to Render**:
-   - Go to [render.com](https://render.com)
-   - Connect GitHub account
-   - Select this repository
-   - Render auto-detects `render.yaml`
-
-3. **Services Created**:
-   - Web Service (Main app)
-   - PostgreSQL Database
-   - Redis (Analytics)
-
-### Environment Variables (Auto-Set)
+### Environment Variables
 ```env
-NODE_ENV=production
 PORT=3001
 DATABASE_URL=postgresql://... (auto-generated)
 REDIS_URL=redis://... (auto-generated)
@@ -120,61 +134,81 @@ REDIS_URL=redis://... (auto-generated)
 
 ```
 Emtirr/
-├── internal/
-│   ├── config/          # Configuration management
-│   ├── game/            # Game logic & AI bot
-│   ├── handlers/        # HTTP & WebSocket handlers
-│   ├── models/          # Data models
-│   └── services/        # Database & Analytics
-├── frontend/
-│   ├── src/
-│   │   ├── components/  # React components
-│   │   └── App.js       # Main application
-│   └── package.json
-├── main.go              # Application entry point
-├── render.yaml          # Production deployment
-└── README.md
+├── 🎯 main.go              # Go application entry point
+├── 🔧 internal/
+│   ├── config/             # Configuration management
+│   ├── game/               # Game logic & AI bot (Go)
+│   ├── handlers/           # HTTP & WebSocket handlers
+│   ├── models/             # Data models
+│   └── services/           # Database & Analytics
+├── ⚛️ frontend/
+│   ├── src/components/     # React components
+│   ├── src/App.js          # Main React application
+│   └── package.json        # Node.js dependencies
+├── 🖼️ pic/                 # Technology stack images
+├── 🐳 docker-compose.yml   # Local development setup
+├── ☁️ render.yaml          # Production deployment config
+└── 📖 README.md
 ```
 
 ## 🔧 Development Commands
 
+### Go Backend
 ```bash
 go mod tidy              # Install Go dependencies
-go run .                 # Start application
-go build -o main .       # Build binary
-
-# Frontend development
-cd frontend && npm install && npm run build
+go run .                 # Start development server
+go build -o main .       # Build production binary
+go test ./...            # Run tests
 ```
 
-## 🧪 Testing
+### React Frontend
+```bash
+cd frontend
+npm install              # Install dependencies
+npm run build            # Build for production
+npm start                # Development server
+```
 
-1. **Single Player**: Join game, wait for bot
-2. **Multiplayer**: Open two browser tabs
-3. **Reconnection**: Refresh page during game
-4. **Analytics**: Check `/api/analytics`
+## 🧪 Testing & Usage
 
-## 🔍 Troubleshooting
+### 🎮 Game Testing
+| Test Case | Steps |
+|-----------|-------|
+| **Single Player** | Join game → Wait 10s for AI bot |
+| **Multiplayer** | Open 2 browser tabs → Join with different names |
+| **Reconnection** | Refresh page during active game |
+| **Analytics** | Visit `/api/analytics` endpoint |
 
-**Database Issues**: App works without database (empty leaderboard)
-**Port Issues**: Change PORT in environment
-**WebSocket Issues**: Check firewall settings
+### 🔍 Troubleshooting
+| Issue | Solution |
+|-------|----------|
+| **Port conflict** | Change `PORT` in `.env` file |
+| **Database error** | App works without DB (empty leaderboard) |
+| **WebSocket fail** | Check firewall/antivirus settings |
+| **Build error** | Run `go mod tidy` and `npm install` |
 
-## 👨💻 Author
+## 🎯 Features Implemented
 
-**Shubham Krishna**
-- GitHub: [@ShubhamKrishna0](https://github.com/ShubhamKrishna0)
-- Project: [Emtirr](https://github.com/ShubhamKrishna0/Emtirr)
+| Feature | Technology | Status |
+|---------|------------|--------|
+| ⚡ **Real-time Multiplayer** | WebSocket + Go | ✅ Complete |
+| 🤖 **AI Bot Integration** | Minimax Algorithm | ✅ Complete |
+| 🗄️ **Database Persistence** | PostgreSQL | ✅ Complete |
+| 📊 **Analytics System** | Kafka/Redis Streaming | ✅ Complete |
+| ☁️ **Production Deployment** | Render Cloud | ✅ Live |
+| 📱 **Responsive UI** | React Frontend | ✅ Complete |
+| 🔄 **Auto Reconnection** | 30s Grace Period | ✅ Complete |
+| 📈 **Live Leaderboard** | Real-time Updates | ✅ Complete |
 
 ---
 
-## 🎯 Assignment Requirements Met
+## 👨💻 Developer
 
-✅ **Real-time Multiplayer Game** - WebSocket implementation  
-✅ **AI Bot Integration** - Minimax algorithm  
-✅ **Database Integration** - PostgreSQL persistence  
-✅ **Analytics System** - Redis event streaming  
-✅ **Production Deployment** - Live on Render  
-✅ **Complete Documentation** - Setup & usage guide  
+**Shubham Krishna**  
+🔗 **GitHub**: [@ShubhamKrishna0](https://github.com/ShubhamKrishna0)  
+📁 **Repository**: [github.com/ShubhamKrishna0/Emtirr](https://github.com/ShubhamKrishna0/Emtirr.git)  
+🎮 **Live Demo**: [emitrr-4-in-a-row-2tzn.onrender.com](https://emitrr-4-in-a-row-2tzn.onrender.com)
 
-**Built with ❤️ for Emitrr Backend Engineering Assignment**
+<div align="center">
+  <strong>Built with Go 🚀 for Emitrr Backend Engineering Assignment</strong>
+</div>
