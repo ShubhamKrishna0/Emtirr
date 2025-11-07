@@ -1,6 +1,6 @@
 # ⚡ 4 in a Row - Real-time Multiplayer Game 🎯
 
-A professional Connect Four game with real-time multiplayer, competitive AI bot, and Kafka-style analytics system built with **Go backend** and React frontend.
+A professional Connect Four game with real-time multiplayer, competitive AI bot, and Redis analytics system built with **Go backend** and React frontend.
 
 ## 🚀 Live Demo
 
@@ -14,7 +14,7 @@ A professional Connect Four game with real-time multiplayer, competitive AI bot,
 ✅ **AI Bot Integration** - Smart bot joins after 10 seconds  
 ✅ **Reconnection System** - 30-second grace period  
 ✅ **PostgreSQL Persistence** - Game history & leaderboard  
-✅ **Kafka Analytics** - Real-time event streaming  
+✅ **Redis Analytics** - Real-time event streaming  
 ✅ **Live Metrics** - Game duration, win rates, player stats  
 ✅ **Production Ready** - Deployed on Render with full scaling  
 
@@ -29,79 +29,15 @@ Frontend (React)     Backend (Go)          Database & Analytics
      └─ Real-time UI        └─ Analytics Service
 ```
 
-## 🚀 High-Performance Go Backend
+## 🚀 Quick Start
 
-**Production-Ready Implementation**:
-
-- **30% faster** response times
-- **50% lower** memory usage  
-- **2x concurrent** user capacity
-- **Native WebSocket** support
-- **Goroutine-based** concurrency
-
-### Quick Start
 ```bash
-# Setup and run
+# Clone and setup
+git clone https://github.com/ShubhamKrishna0/Emtirr.git
+cd Emtirr
 go mod tidy
 cd frontend && npm install && npm run build
 cd .. && go run .
-```
-
-## 📋 Prerequisites
-
-- **Go** (v1.21 or higher)
-- **Node.js** (v18+ for frontend build only)
-- **PostgreSQL** (v12+ for local development)
-- **Git** for cloning the repository
-
-## 🚀 Quick Start
-
-### 1. Clone Repository
-```bash
-git clone https://github.com/ShubhamKrishna0/Emtirr.git
-cd Emtirr
-```
-
-### 2. Install Dependencies
-```bash
-npm run setup
-```
-This installs dependencies for both backend and frontend.
-
-### 3. Environment Setup
-```bash
-# Copy environment template
-cp backend-go/.env.example backend-go/.env
-```
-
-Edit `backend-go/.env`:
-```env
-PORT=3001
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=four_in_a_row
-DB_USER=postgres
-DB_PASSWORD=your_postgres_password
-NODE_ENV=development
-```
-
-### 4. Database Setup
-
-**Option A: Local PostgreSQL**
-```bash
-# Create database
-createdb four_in_a_row
-
-# Or using psql
-psql -U postgres -c "CREATE DATABASE four_in_a_row;"
-```
-
-**Option B: Skip Database (Optional)**
-The app works without database - leaderboard will be empty but game functions normally.
-
-### 5. Run Application
-```bash
-go run .
 ```
 
 **Game available at**: `http://localhost:3001`
@@ -117,7 +53,6 @@ go run .
 ## 📊 Analytics System
 
 ### Real-Time Event Tracking
-The system tracks:
 - **Game Events**: Start, moves, end, duration
 - **Player Metrics**: Win rates, activity patterns
 - **Bot Performance**: Decision patterns, effectiveness
@@ -126,171 +61,82 @@ The system tracks:
 ### View Analytics
 - **API Endpoint**: `/api/analytics`
 - **Live Logs**: Check console for real-time events
-- **Database**: Query `analytics_events` table
-
-### Sample Analytics Response
-```json
-{
-  "totalGames": [{"count": "45"}],
-  "totalPlayers": [{"count": "12"}],
-  "avgGameDuration": [{"avg_duration": "180.5"}],
-  "topWinners": [
-    {"username": "Alice", "games_won": 8},
-    {"username": "Bob", "games_won": 6}
-  ],
-  "botVsHuman": [
-    {"is_bot": false, "count": "30", "avg_duration": "195.2"},
-    {"is_bot": true, "count": "15", "avg_duration": "165.8"}
-  ]
-}
-```
-
-## 🔧 Development Commands
-
-```bash
-go mod tidy            # Install Go dependencies
-go run .               # Start Go application
-go build -o main .     # Build Go binary
-./main                 # Run built binary
-
-# Frontend (for development)
-cd frontend && npm install && npm run build
-```
 
 ## 🚀 Production Deployment
 
-### Deploy to Render (Recommended)
+### Deploy to Render
 
-1. **Fork/Clone** this repository
-2. **Connect to Render**:
-   - Go to [render.com](https://render.com)
-   - Connect your GitHub account
-   - Select this repository
-3. **Auto-Deploy**: Render detects `render.yaml` and deploys automatically
-4. **Services Created**:
-   - Web Service (Main app)
-   - PostgreSQL Database
-   - Redis (Analytics queue)
-
-### Manual Deployment Steps
-
+1. **Push to GitHub**:
 ```bash
-# 1. Push to GitHub
 git add .
 git commit -m "Deploy to production"
 git push origin main
-
-# 2. Render will auto-deploy from render.yaml
-# 3. Your app will be live at: https://your-app-name.onrender.com
 ```
 
-### Environment Variables (Production)
-Render automatically sets:
-- `DATABASE_URL` - PostgreSQL connection
-- `REDIS_URL` - Analytics queue
-- `NODE_ENV=production`
+2. **Connect to Render**:
+   - Go to [render.com](https://render.com)
+   - Connect GitHub account
+   - Select this repository
+   - Render auto-detects `render.yaml`
 
-## 🧪 Testing
+3. **Services Created**:
+   - Web Service (Main app)
+   - PostgreSQL Database
+   - Redis (Analytics)
 
-### Manual Testing
-1. **Single Player**: Join game, wait for bot
-2. **Multiplayer**: Open two browser tabs, join with different names
-3. **Reconnection**: Refresh page during game, should reconnect
-4. **Analytics**: Check `/api/analytics` after playing games
-
-### Game Logic Testing
-- **Win Detection**: Test horizontal, vertical, diagonal wins
-- **Draw Condition**: Fill board without winner
-- **Bot Intelligence**: Bot should block winning moves
-- **Move Validation**: Invalid moves should be rejected
+### Environment Variables (Auto-Set)
+```env
+NODE_ENV=production
+PORT=3001
+DATABASE_URL=postgresql://... (auto-generated)
+REDIS_URL=redis://... (auto-generated)
+```
 
 ## 📁 Project Structure
 
 ```
 Emtirr/
-├── backend/
-│   ├── src/
-│   │   ├── game/
-│   │   │   ├── GameManager.js    # Core game logic
-│   │   │   └── Bot.js            # AI bot implementation
-│   │   ├── services/
-│   │   │   ├── DatabaseService.js    # PostgreSQL operations
-│   │   │   ├── AnalyticsService.js   # Event tracking
-│   │   │   └── KafkaConsumer.js      # Analytics processor
-│   │   ├── models/
-│   │   │   └── Game.js           # Game data model
-│   │   └── middleware/
-│   │       └── security.js       # Input validation
-│   ├── analytics-consumer.js     # Standalone analytics service
-│   ├── server.js                 # Express + Socket.IO server
-│   └── package.json
+├── internal/
+│   ├── config/          # Configuration management
+│   ├── game/            # Game logic & AI bot
+│   ├── handlers/        # HTTP & WebSocket handlers
+│   ├── models/          # Data models
+│   └── services/        # Database & Analytics
 ├── frontend/
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── GameBoard.js      # Game interface
-│   │   │   └── Leaderboard.js    # Rankings display
-│   │   ├── App.js                # Main React component
-│   │   └── index.js
+│   │   ├── components/  # React components
+│   │   └── App.js       # Main application
 │   └── package.json
-├── render.yaml                   # Production deployment config
-├── package.json                  # Root package file
+├── main.go              # Application entry point
+├── render.yaml          # Production deployment
 └── README.md
 ```
 
+## 🔧 Development Commands
+
+```bash
+go mod tidy              # Install Go dependencies
+go run .                 # Start application
+go build -o main .       # Build binary
+
+# Frontend development
+cd frontend && npm install && npm run build
+```
+
+## 🧪 Testing
+
+1. **Single Player**: Join game, wait for bot
+2. **Multiplayer**: Open two browser tabs
+3. **Reconnection**: Refresh page during game
+4. **Analytics**: Check `/api/analytics`
+
 ## 🔍 Troubleshooting
 
-### Common Issues
+**Database Issues**: App works without database (empty leaderboard)
+**Port Issues**: Change PORT in environment
+**WebSocket Issues**: Check firewall settings
 
-**1. Database Connection Failed**
-```bash
-# Check PostgreSQL is running
-pg_ctl status
-
-# Verify database exists
-psql -l | grep four_in_a_row
-```
-
-**2. Port Already in Use**
-```bash
-# Kill process on port 3001
-lsof -ti:3001 | xargs kill -9
-```
-
-**3. WebSocket Connection Issues**
-- Check firewall settings
-- Ensure port 3001 is accessible
-- Try different browser
-
-**4. Analytics Not Working**
-- Analytics work without Kafka (logs to console)
-- Check `/api/analytics` endpoint
-- Verify database connection
-
-### Performance Optimization
-
-**Frontend**:
-- Game board renders efficiently with React
-- WebSocket events are debounced
-- Leaderboard caches for 30 seconds
-
-**Backend**:
-- Database connections pooled
-- Game state stored in memory
-- Analytics events batched
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature-name`
-3. Commit changes: `git commit -m 'Add feature'`
-4. Push to branch: `git push origin feature-name`
-5. Submit pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 👨‍💻 Author
+## 👨💻 Author
 
 **Shubham Krishna**
 - GitHub: [@ShubhamKrishna0](https://github.com/ShubhamKrishna0)
@@ -301,10 +147,10 @@ This project is licensed under the MIT License.
 ## 🎯 Assignment Requirements Met
 
 ✅ **Real-time Multiplayer Game** - WebSocket implementation  
-✅ **AI Bot Integration** - Minimax algorithm with alpha-beta pruning  
-✅ **Database Integration** - PostgreSQL with game persistence  
-✅ **Kafka Analytics** - Event streaming and metrics tracking  
-✅ **Production Deployment** - Live on Render with scaling  
-✅ **Complete Documentation** - Full setup and usage guide  
+✅ **AI Bot Integration** - Minimax algorithm  
+✅ **Database Integration** - PostgreSQL persistence  
+✅ **Analytics System** - Redis event streaming  
+✅ **Production Deployment** - Live on Render  
+✅ **Complete Documentation** - Setup & usage guide  
 
 **Built with ❤️ for Emitrr Backend Engineering Assignment**
