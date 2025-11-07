@@ -146,18 +146,21 @@ func (gm *GameManager) createGame(player1, player2 *PlayerConnection) {
 	gm.games[game.ID] = game
 	gm.mu.Unlock()
 
-	gameState := map[string]interface{}{
-		"gameId":    game.ID,
-		"gameState": game,
+	// Send game_started to player 1
+	gameState1 := map[string]interface{}{
+		"gameId":     game.ID,
+		"gameState":  game,
 		"yourPlayer": 1,
 	}
+	gm.sendMessage(player1.Conn, "game_started", gameState1)
 
-	gm.sendMessage(player1.Conn, "game_started", gameState)
-	gameState["yourPlayer"] = 2
-	gm.sendMessage(player2.Conn, "game_started", gameState)
-
-	gm.sendMessage(player1.Conn, "your_turn", map[string]int{"player": 1})
-	gm.sendMessage(player2.Conn, "your_turn", map[string]int{"player": 2})
+	// Send game_started to player 2
+	gameState2 := map[string]interface{}{
+		"gameId":     game.ID,
+		"gameState":  game,
+		"yourPlayer": 2,
+	}
+	gm.sendMessage(player2.Conn, "game_started", gameState2)
 
 	gm.analyticsService.TrackEvent("game_started", map[string]interface{}{
 		"gameId":   game.ID,
@@ -375,27 +378,13 @@ func (gm *GameManager) HandlePlayerRejoin(conn *websocket.Conn, gameID, username
 	newPlayerID := generatePlayerID()
 	var playerNum int
 	
-	// Update the game's player ID and connection
+	// Update player socket like Node.js does
 	if game.Player1.Username == username {
-		// Clean up old player connection if exists
-		for oldID, oldConn := range gm.playerSockets {
-			if oldConn.Player.Username == username {
-				delete(gm.playerSockets, oldID)
-				break
-			}
-		}
-		game.Player1.ID = newPlayerID // Update ID in game object
+		game.Player1.ID = newPlayerID
 		gm.playerSockets[newPlayerID] = &PlayerConnection{Player: game.Player1, Conn: conn}
 		playerNum = 1
-	} else if game.Player2.Username == username {
-		// Clean up old player connection if exists
-		for oldID, oldConn := range gm.playerSockets {
-			if oldConn.Player.Username == username {
-				delete(gm.playerSockets, oldID)
-				break
-			}
-		}
-		game.Player2.ID = newPlayerID // Update ID in game object  
+	} else if game.Player2 != nil && game.Player2.Username == username {
+		game.Player2.ID = newPlayerID
 		gm.playerSockets[newPlayerID] = &PlayerConnection{Player: game.Player2, Conn: conn}
 		playerNum = 2
 	} else {
