@@ -327,7 +327,7 @@ func (b *Bot) checkWinInBoard(board [][]int, col, player int) bool {
 	if row == -1 {
 		return false
 	}
-
+// det
 	directions := [][]int{{0, 1}, {1, 0}, {1, 1}, {1, -1}}
 
 	for _, dir := range directions {
