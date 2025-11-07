@@ -36,10 +36,10 @@ function App() {
         reconnectTimer = null;
       }
       
-      // Auto-reconnect if we have stored game info
+      // Auto-reconnect if we have stored game info and no existing disconnected game
       const storedUsername = localStorage.getItem('gameUsername');
       const storedGameId = localStorage.getItem('gameId');
-      if (storedUsername && storedGameId && !reconnectAttempted) {
+      if (storedUsername && storedGameId && !reconnectAttempted && !disconnectedGameId) {
         setReconnectAttempted(true);
         setUsername(storedUsername);
         setDisconnectedGameId(storedGameId);
@@ -154,12 +154,11 @@ function App() {
           break;
         case 'error':
           setMessage(`Error: ${data.message}`);
-          // Clear reconnection data if error is about game not found
-          if (data.message.includes('No active game') || data.message.includes('not found')) {
-            localStorage.removeItem('gameUsername');
-            localStorage.removeItem('gameId');
-            setDisconnectedGameId(null);
-          }
+          // Clear reconnection data on any error during rejoin
+          localStorage.removeItem('gameUsername');
+          localStorage.removeItem('gameId');
+          setDisconnectedGameId(null);
+          setReconnectAttempted(false);
           break;
         default:
           console.log('Unknown message type:', type);
