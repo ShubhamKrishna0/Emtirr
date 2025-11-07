@@ -20,10 +20,30 @@ func NewBot() *Bot {
 }
 
 func (b *Bot) GetBestMove(game *models.Game) int {
+	// First check for valid moves
+	validMoves := b.getValidMoves(game.Board)
+	if len(validMoves) == 0 {
+		return -1 // No valid moves
+	}
+
+	// Check for immediate tactical moves first
+	if immediateMove := b.GetImmediateMove(game); immediateMove != nil {
+		return *immediateMove
+	}
+
 	// Adaptive depth based on game state
 	depth := b.getOptimalDepth(game.Board)
 	result := b.minimax(game.Board, depth, math.Inf(-1), math.Inf(1), true)
-	return result.Column
+	
+	// Validate the result
+	for _, validCol := range validMoves {
+		if result.Column == validCol {
+			return result.Column
+		}
+	}
+	
+	// Fallback to first valid move
+	return validMoves[0]
 }
 
 func (b *Bot) getOptimalDepth(board [][]int) int {
@@ -59,6 +79,9 @@ func (b *Bot) minimax(board [][]int, depth int, alpha, beta float64, isMaximizin
 	}
 
 	validMoves := b.getValidMoves(board)
+	if len(validMoves) == 0 {
+		return MinimaxResult{Score: score, Column: -1}
+	}
 	bestColumn := validMoves[0]
 
 	if isMaximizing {
@@ -227,10 +250,6 @@ func (b *Bot) getValidMoves(board [][]int) []int {
 		if board[0][col] == 0 {
 			validMoves = append(validMoves, col)
 		}
-	}
-	if len(validMoves) == 0 {
-		// Fallback to center if no moves found
-		validMoves = append(validMoves, 3)
 	}
 	return validMoves
 }
