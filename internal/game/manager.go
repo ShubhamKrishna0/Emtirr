@@ -313,6 +313,23 @@ func (gm *GameManager) makeBotMove(game *models.Game) {
 	}
 
 	column := gm.bot.GetBestMove(game)
+	if column < 0 || column > 6 {
+		log.Printf("Bot selected invalid column: %d", column)
+		return
+	}
+
+	// Check if column is full
+	if game.Board[0][column] != 0 {
+		log.Printf("Bot selected full column: %d, finding alternative", column)
+		// Find first available column
+		for col := 0; col < 7; col++ {
+			if game.Board[0][col] == 0 {
+				column = col
+				break
+			}
+		}
+	}
+
 	row, gameOver, winner, err := game.MakeMove(column, 2)
 	if err != nil {
 		log.Printf("Bot move error: %v", err)

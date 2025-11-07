@@ -228,6 +228,10 @@ func (b *Bot) getValidMoves(board [][]int) []int {
 			validMoves = append(validMoves, col)
 		}
 	}
+	if len(validMoves) == 0 {
+		// Fallback to center if no moves found
+		validMoves = append(validMoves, 3)
+	}
 	return validMoves
 }
 
