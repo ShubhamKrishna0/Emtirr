@@ -62,12 +62,11 @@ func (g *Game) AddPlayer(player *Player) bool {
 	return false
 }
 
-func (g *Game) MakeMove(column int, playerID string) (int, bool, *int, error) {
+func (g *Game) MakeMove(column int, playerNumber int) (int, bool, *int, error) {
 	if g.Status != "playing" {
 		return -1, false, nil, &GameError{"Game not active"}
 	}
 
-	playerNumber := g.GetPlayerNumber(playerID)
 	if playerNumber != g.CurrentPlayer {
 		return -1, false, nil, &GameError{"Not your turn"}
 	}

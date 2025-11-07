@@ -146,7 +146,7 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 		return
 	}
 
-	row, gameOver, winner, err := game.MakeMove(column, "player")
+	row, gameOver, winner, err := game.MakeMove(column, player.PlayerNum)
 	if err != nil {
 		gm.sendError(conn, err.Error())
 		return
@@ -313,7 +313,7 @@ func (gm *GameManager) makeBotMove(game *models.Game) {
 	}
 
 	column := gm.bot.GetBestMove(game)
-	row, gameOver, winner, err := game.MakeMove(column, "bot")
+	row, gameOver, winner, err := game.MakeMove(column, 2)
 	if err != nil {
 		log.Printf("Bot move error: %v", err)
 		return
