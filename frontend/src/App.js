@@ -36,13 +36,12 @@ function App() {
         reconnectTimer = null;
       }
       
-      // Auto-reconnect if we have stored game info and no existing disconnected game
+      // Auto-reconnect if we have stored game info
       const storedUsername = localStorage.getItem('gameUsername');
       const storedGameId = localStorage.getItem('gameId');
-      if (storedUsername && storedGameId && !reconnectAttempted && !disconnectedGameId) {
+      if (storedUsername && storedGameId && !reconnectAttempted) {
         setReconnectAttempted(true);
         setUsername(storedUsername);
-        setDisconnectedGameId(storedGameId);
         console.log('Attempting auto-reconnect:', { username: storedUsername, gameId: storedGameId });
         socket.send(JSON.stringify({
           type: 'rejoin_game',
@@ -154,11 +153,13 @@ function App() {
           break;
         case 'error':
           setMessage(`Error: ${data.message}`);
-          // Clear reconnection data on any error during rejoin
-          localStorage.removeItem('gameUsername');
-          localStorage.removeItem('gameId');
-          setDisconnectedGameId(null);
-          setReconnectAttempted(false);
+          // Clear reconnection data if error is about game not found
+          if (data.message.includes('No active game') || data.message.includes('not found') || data.message.includes('rejoin')) {
+            localStorage.removeItem('gameUsername');
+            localStorage.removeItem('gameId');
+            setDisconnectedGameId(null);
+            setReconnectAttempted(false);
+          }
           break;
         default:
           console.log('Unknown message type:', type);

@@ -77,7 +77,7 @@ func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]in
 	}
 	log.Printf("Player joining: %s", username)
 
-	// Check for reconnectable game FIRST
+	// Check for reconnectable game within 30 seconds
 	gm.mu.Lock()
 	if reconnectGame := gm.findReconnectableGame(username); reconnectGame != nil {
 		gm.mu.Unlock()
@@ -454,7 +454,7 @@ func (gm *GameManager) HandlePlayerDisconnect(conn *websocket.Conn) {
 			DisconnectedAt: time.Now(),
 		}
 
-		log.Printf("Player %s added to disconnected list for game %s", playerConn.Player.Username, game.ID)
+		log.Printf("Player %s disconnected from game %s. 30 seconds to reconnect.", playerConn.Player.Username, game.ID)
 
 		gm.broadcastToGameExcept(game.ID, playerID, "player_disconnected", map[string]interface{}{
 			"player":        playerConn.Player.Username,
@@ -530,7 +530,7 @@ func (gm *GameManager) cleanupDisconnectedPlayers() {
 				gm.broadcastToGameExcept(game.ID, "", "game_ended", map[string]interface{}{
 					"winner":    &winner,
 					"gameState": game,
-					"reason":    "opponent_disconnected",
+					"reason":    "opponent_forfeited",
 				})
 
 				gm.handleGameEnd(game)
