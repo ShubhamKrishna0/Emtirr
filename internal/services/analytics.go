@@ -29,9 +29,11 @@ type AnalyticsEvent struct {
 }
 
 func NewAnalyticsService(cfg *config.Config) *AnalyticsService {
-	return &AnalyticsService{
+	as := &AnalyticsService{
 		cfg: cfg,
 	}
+	as.Initialize()
+	return as
 }
 
 func (as *AnalyticsService) Initialize() error {
@@ -93,6 +95,7 @@ func (as *AnalyticsService) TrackEvent(eventType string, data map[string]interfa
 		Data:      data,
 	}
 
+	// Send to Kafka/Redis if available
 	if as.initialized {
 		if as.useRedis {
 			as.publishToRedis(event)
@@ -101,13 +104,26 @@ func (as *AnalyticsService) TrackEvent(eventType string, data map[string]interfa
 		}
 	}
 
-	// Always log to console
+	// Always log to console for immediate feedback
 	log.Printf("Analytics [%s]: gameId=%v, player=%v, timestamp=%s",
 		eventType,
 		data["gameId"],
 		getPlayerFromData(data),
 		event.Timestamp,
 	)
+
+	// Process specific events for metrics
+	switch eventType {
+	case "game_started":
+		log.Printf("Game started: %v at %s", data["gameId"], event.Timestamp)
+	case "game_ended":
+		log.Printf("Game ended: %v, Winner: %v, Duration: %v", 
+			data["gameId"], data["winner"], data["duration"])
+	case "move_made":
+		log.Printf("Move tracked: Game %v, Column %v", data["gameId"], data["column"])
+	case "bot_move":
+		log.Printf("Bot move: Game %v, Column %v", data["gameId"], data["column"])
+	}
 }
 
 func (as *AnalyticsService) publishToRedis(event AnalyticsEvent) {

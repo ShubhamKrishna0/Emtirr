@@ -12,52 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type GameManager struct {
-	games            map[string]*models.Game
-	connections      map[*websocket.Conn]*Player
-	waitingQueue     []*Player
-	disconnected     map[string]*DisconnectedInfo
-	dbService        *services.DatabaseService
-	analyticsService *services.AnalyticsService
-	bot              *Bot
-	mu               sync.RWMutex
-}
-
-type Player struct {
-	Username  string
-	Conn      *websocket.Conn
-	GameID    string
-	PlayerNum int
-}
-
-type DisconnectedInfo struct {
-	GameID    string
-	PlayerNum int
-	Time      time.Time
-}
-
-func NewGameManager(dbService *services.DatabaseService, analyticsService *services.AnalyticsService) *GameManager {
-	gm := &GameManager{
-		games:            make(map[string]*models.Game),
-		connections:      make(map[*websocket.Conn]*Player),
-		waitingQueue:     make([]*Player, 0),
-		disconnected:     make(map[string]*DisconnectedInfo),
-		dbService:        dbService,
-		analyticsService: analyticsService,
-		bot:              NewBot(),
-	}
-
-	go func() {
-		ticker := time.NewTicker(30 * time.Second)
-		defer ticker.Stop()
-		for range ticker.C {
-			gm.cleanup()
-		}
-	}()
-
-	return gm
-}
-
+// HandlePlayerJoin - Clean implementation
 func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]interface{}) {
 	username, ok := data["username"].(string)
 	if !ok || len(strings.TrimSpace(username)) < 2 {
@@ -102,6 +57,7 @@ func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]in
 		gm.mu.Lock()
 		defer gm.mu.Unlock()
 		
+		// Check if still waiting
 		for i, p := range gm.waitingQueue {
 			if p == player {
 				gm.waitingQueue = append(gm.waitingQueue[:i], gm.waitingQueue[i+1:]...)
@@ -112,6 +68,7 @@ func (gm *GameManager) HandlePlayerJoin(conn *websocket.Conn, data map[string]in
 	}()
 }
 
+// HandlePlayerMove - Clean implementation
 func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]interface{}) {
 	gameID, ok := data["gameId"].(string)
 	if !ok {
@@ -141,17 +98,20 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 		return
 	}
 
+	// Check if it's player's turn
 	if game.CurrentPlayer != player.PlayerNum {
 		gm.sendError(conn, "Not your turn")
 		return
 	}
 
+	// Make move
 	row, gameOver, winner, err := game.MakeMove(column, "player")
 	if err != nil {
 		gm.sendError(conn, err.Error())
 		return
 	}
 
+	// Broadcast move
 	moveData := map[string]interface{}{
 		"column":    column,
 		"row":       row,
@@ -159,16 +119,6 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 		"gameState": game,
 	}
 	gm.broadcastToGame(gameID, "move_made", moveData)
-
-	// Analytics
-	if gm.analyticsService != nil {
-		gm.analyticsService.TrackEvent("move_made", map[string]interface{}{
-			"gameId": gameID,
-			"player": player.Username,
-			"column": column,
-			"row":    row,
-		})
-	}
 
 	if gameOver {
 		gm.endGame(game, winner)
@@ -180,6 +130,7 @@ func (gm *GameManager) HandlePlayerMove(conn *websocket.Conn, data map[string]in
 	}
 }
 
+// HandlePlayerDisconnect - Clean implementation
 func (gm *GameManager) HandlePlayerDisconnect(conn *websocket.Conn) {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
@@ -213,6 +164,7 @@ func (gm *GameManager) HandlePlayerDisconnect(conn *websocket.Conn) {
 	}
 }
 
+// Helper methods
 func (gm *GameManager) startPvPGame(player1, player2 *Player) {
 	game := models.NewGame(
 		&models.Player{ID: "p1", Username: player1.Username},
@@ -236,16 +188,6 @@ func (gm *GameManager) startPvPGame(player1, player2 *Player) {
 	})
 
 	log.Printf("PvP game started: %s vs %s", player1.Username, player2.Username)
-
-	// Analytics
-	if gm.analyticsService != nil {
-		gm.analyticsService.TrackEvent("game_started", map[string]interface{}{
-			"gameId":   game.ID,
-			"player1":  player1.Username,
-			"player2":  player2.Username,
-			"gameType": "pvp",
-		})
-	}
 }
 
 func (gm *GameManager) startBotGame(player *Player) {
@@ -266,16 +208,6 @@ func (gm *GameManager) startBotGame(player *Player) {
 	})
 
 	log.Printf("Bot game started for: %s", player.Username)
-
-	// Analytics
-	if gm.analyticsService != nil {
-		gm.analyticsService.TrackEvent("game_started", map[string]interface{}{
-			"gameId":   game.ID,
-			"player1":  player.Username,
-			"player2":  "AI Bot",
-			"gameType": "bot",
-		})
-	}
 }
 
 func (gm *GameManager) reconnectPlayer(conn *websocket.Conn, username string, info *DisconnectedInfo) {
@@ -327,15 +259,6 @@ func (gm *GameManager) makeBotMove(game *models.Game) {
 	}
 	gm.broadcastToGame(game.ID, "move_made", moveData)
 
-	// Analytics
-	if gm.analyticsService != nil {
-		gm.analyticsService.TrackEvent("bot_move", map[string]interface{}{
-			"gameId": game.ID,
-			"column": column,
-			"row":    row,
-		})
-	}
-
 	if gameOver {
 		gm.endGame(game, winner)
 	}
@@ -350,17 +273,6 @@ func (gm *GameManager) endGame(game *models.Game, winner *int) {
 		"gameState": game,
 	}
 	gm.broadcastToGame(game.ID, "game_ended", endData)
-
-	// Analytics
-	if gm.analyticsService != nil {
-		gm.analyticsService.TrackEvent("game_ended", map[string]interface{}{
-			"gameId":   game.ID,
-			"winner":   winner,
-			"duration": game.GetDuration(),
-			"moves":    len(game.Moves),
-			"gameType": map[bool]string{true: "bot", false: "pvp"}[game.IsBot],
-		})
-	}
 
 	// Save to database
 	go func() {
