@@ -31,10 +31,23 @@ Frontend (React)     Backend (Go)          Database & Analytics
 
 ## 🚀 Quick Start
 
+### For Teacher Demo (Kafka)
 ```bash
-# Clone and setup
-git clone https://github.com/ShubhamKrishna0/Emtirr.git
-cd Emtirr
+# Start Kafka & PostgreSQL
+docker-compose up -d
+
+# Setup environment
+cp .env.example .env
+
+# Run application
+go mod tidy
+cd frontend && npm install && npm run build
+cd .. && go run .
+```
+
+### For Production (Redis)
+```bash
+# No Docker needed
 go mod tidy
 cd frontend && npm install && npm run build
 cd .. && go run .
@@ -51,6 +64,17 @@ cd .. && go run .
 5. **View Stats** - Check leaderboard for rankings
 
 ## 📊 Analytics System
+
+### 🔥 Dual Analytics Support
+**Local Demo (Kafka)**:
+- Producer → `game-analytics` topic
+- Consumer processes events
+- Shows event streaming architecture
+
+**Production (Redis)**:
+- Events → Redis queue `game-events`
+- In-process consumer
+- Optimized for Render deployment
 
 ### Real-Time Event Tracking
 - **Game Events**: Start, moves, end, duration

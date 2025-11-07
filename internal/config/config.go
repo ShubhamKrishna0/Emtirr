@@ -14,8 +14,9 @@ type Config struct {
 	DBUser       string
 	DBPassword   string
 	DatabaseURL  string
-	KafkaBroker  string
+
 	RedisURL     string
+	KafkaBroker  string
 	NodeEnv      string
 }
 
@@ -30,8 +31,9 @@ func Load() *Config {
 		DBUser:       getEnv("DB_USER", "postgres"),
 		DBPassword:   getEnv("DB_PASSWORD", ""),
 		DatabaseURL:  getEnv("DATABASE_URL", ""),
-		KafkaBroker:  getEnv("KAFKA_BROKER", ""),
+
 		RedisURL:     getEnv("REDIS_URL", ""),
+		KafkaBroker:  getEnv("KAFKA_BROKER", ""),
 		NodeEnv:      getEnv("NODE_ENV", "development"),
 	}
 }

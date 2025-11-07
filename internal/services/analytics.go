@@ -3,22 +3,19 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"emitrr-4-in-a-row/internal/config"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/segmentio/kafka-go"
 )
 
 type AnalyticsService struct {
 	cfg         *config.Config
-	kafkaWriter *kafka.Writer
 	redisClient *redis.Client
-	useRedis    bool
+	kafkaService *KafkaService
+	useKafka    bool
 	initialized bool
 }
 
@@ -37,55 +34,38 @@ func NewAnalyticsService(cfg *config.Config) *AnalyticsService {
 }
 
 func (as *AnalyticsService) Initialize() error {
-	brokerURL := as.cfg.KafkaBroker
-	if brokerURL == "" && as.cfg.RedisURL == "" {
-		log.Println("No broker configured, analytics disabled")
+	// Try Kafka first (for local demo)
+	if as.cfg.KafkaBroker != "" {
+		as.kafkaService = NewKafkaService(as.cfg.KafkaBroker)
+		as.useKafka = true
+		as.initialized = true
+		log.Println("Kafka Analytics initialized for demo")
 		return nil
 	}
 
-	// Try Redis first (for Render)
-	if strings.Contains(brokerURL, "redis://") || as.cfg.RedisURL != "" {
-		redisURL := as.cfg.RedisURL
-		if redisURL == "" {
-			redisURL = brokerURL
-		}
-
-		opt, err := redis.ParseURL(redisURL)
+	// Fallback to Redis (for production)
+	if as.cfg.RedisURL != "" {
+		opt, err := redis.ParseURL(as.cfg.RedisURL)
 		if err != nil {
 			log.Printf("Redis URL parse error: %v", err)
+			return err
+		}
+
+		as.redisClient = redis.NewClient(opt)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := as.redisClient.Ping(ctx).Err(); err == nil {
+			as.initialized = true
+			log.Println("Redis Analytics initialized")
+			return nil
 		} else {
-			as.redisClient = redis.NewClient(opt)
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-
-			if err := as.redisClient.Ping(ctx).Err(); err == nil {
-				as.useRedis = true
-				as.initialized = true
-				log.Println("Redis Analytics initialized")
-				return nil
-			} else {
-				log.Printf("Redis connection failed: %v", err)
-			}
+			log.Printf("Redis connection failed: %v", err)
 		}
 	}
 
-	// Fallback to Kafka
-	if brokerURL != "" && !strings.Contains(brokerURL, "redis://") {
-		as.kafkaWriter = &kafka.Writer{
-			Addr:         kafka.TCP(brokerURL),
-			Topic:        "game-events",
-			Balancer:     &kafka.LeastBytes{},
-			WriteTimeout: 10 * time.Second,
-			ReadTimeout:  10 * time.Second,
-		}
-
-		as.initialized = true
-		log.Println("Kafka Analytics Producer initialized")
-		return nil
-	}
-
-	log.Println("Analytics initialization failed")
-	return fmt.Errorf("no valid analytics backend configured")
+	log.Println("No analytics backend configured")
+	return nil
 }
 
 func (as *AnalyticsService) TrackEvent(eventType string, data map[string]interface{}) {
@@ -95,16 +75,16 @@ func (as *AnalyticsService) TrackEvent(eventType string, data map[string]interfa
 		Data:      data,
 	}
 
-	// Send to Kafka/Redis if available
 	if as.initialized {
-		if as.useRedis {
+		if as.useKafka {
+			if err := as.kafkaService.PublishEvent(event); err != nil {
+				log.Printf("Failed to publish to Kafka: %v", err)
+			}
+		} else if as.redisClient != nil {
 			as.publishToRedis(event)
-		} else if as.kafkaWriter != nil {
-			as.publishToKafka(event)
 		}
 	}
 
-	// Always log to console for immediate feedback
 	log.Printf("Analytics [%s]: gameId=%v, player=%v, timestamp=%s",
 		eventType,
 		data["gameId"],
@@ -112,7 +92,6 @@ func (as *AnalyticsService) TrackEvent(eventType string, data map[string]interfa
 		event.Timestamp,
 	)
 
-	// Process specific events for metrics
 	switch eventType {
 	case "game_started":
 		log.Printf("Game started: %v at %s", data["gameId"], event.Timestamp)
@@ -141,43 +120,21 @@ func (as *AnalyticsService) publishToRedis(event AnalyticsEvent) {
 	}
 }
 
-func (as *AnalyticsService) publishToKafka(event AnalyticsEvent) {
-	eventJSON, err := json.Marshal(event)
-	if err != nil {
-		log.Printf("Failed to marshal event: %v", err)
-		return
-	}
-
-	gameID := ""
-	if gid, ok := event.Data["gameId"].(string); ok {
-		gameID = gid
-	}
-
-	message := kafka.Message{
-		Key:   []byte(gameID),
-		Value: eventJSON,
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	if err := as.kafkaWriter.WriteMessages(ctx, message); err != nil {
-		log.Printf("Failed to send analytics event: %v", err)
-	}
-}
-
 func (as *AnalyticsService) StartConsumer(dbService *DatabaseService) error {
 	if !as.initialized {
-		return fmt.Errorf("analytics service not initialized")
+		log.Println("Analytics service not initialized, skipping consumer")
+		return nil
 	}
 
-	if as.useRedis {
-		return as.startRedisConsumer(dbService)
-	} else if as.kafkaWriter != nil {
-		return as.startKafkaConsumer(dbService)
+	if as.useKafka {
+		as.kafkaService.StartConsumer(func(event AnalyticsEvent) {
+			as.processEvent(event, dbService)
+		})
+		log.Println("Kafka consumer started for demo")
+		return nil
 	}
 
-	return fmt.Errorf("no consumer available")
+	return as.startRedisConsumer(dbService)
 }
 
 func (as *AnalyticsService) startRedisConsumer(dbService *DatabaseService) error {
@@ -211,43 +168,6 @@ func (as *AnalyticsService) startRedisConsumer(dbService *DatabaseService) error
 	return nil
 }
 
-func (as *AnalyticsService) startKafkaConsumer(dbService *DatabaseService) error {
-	log.Println("Starting Kafka analytics consumer")
-
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{as.cfg.KafkaBroker},
-		Topic:    "game-events",
-		GroupID:  "analytics-group",
-		MinBytes: 10e3,
-		MaxBytes: 10e6,
-	})
-
-	go func() {
-		defer reader.Close()
-
-		for {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			message, err := reader.ReadMessage(ctx)
-			cancel()
-
-			if err != nil {
-				log.Printf("Kafka consumer error: %v", err)
-				continue
-			}
-
-			var event AnalyticsEvent
-			if err := json.Unmarshal(message.Value, &event); err != nil {
-				log.Printf("Failed to unmarshal event: %v", err)
-				continue
-			}
-
-			as.processEvent(event, dbService)
-		}
-	}()
-
-	return nil
-}
-
 func (as *AnalyticsService) processEvent(event AnalyticsEvent, dbService *DatabaseService) {
 	switch event.EventType {
 	case "game_started":
@@ -269,7 +189,6 @@ func (as *AnalyticsService) trackGameEnd(data map[string]interface{}, timestamp 
 	log.Printf("Game ended: %v, Winner: %v, Duration: %v", 
 		data["gameId"], data["winner"], data["duration"])
 
-	// Store analytics in database if available
 	if dbService != nil {
 		gameID := ""
 		if gid, ok := data["gameId"].(string); ok {
@@ -285,8 +204,8 @@ func (as *AnalyticsService) trackMove(data map[string]interface{}, timestamp str
 }
 
 func (as *AnalyticsService) Close() {
-	if as.kafkaWriter != nil {
-		as.kafkaWriter.Close()
+	if as.kafkaService != nil {
+		as.kafkaService.Close()
 	}
 	if as.redisClient != nil {
 		as.redisClient.Close()

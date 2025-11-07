@@ -1,73 +1,88 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"time"
 
-	"github.com/IBM/sarama"
+	"github.com/segmentio/kafka-go"
 )
 
 type KafkaService struct {
-	producer sarama.SyncProducer
-	topic    string
+	writer *kafka.Writer
 }
 
-type AnalyticsEvent struct {
-	Type      string                 `json:"type"`
-	Data      map[string]interface{} `json:"data"`
-	Timestamp time.Time              `json:"timestamp"`
-}
-
-func NewKafkaService(brokers []string, topic string) (*KafkaService, error) {
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 3
-
-	producer, err := sarama.NewSyncProducer(brokers, config)
-	if err != nil {
-		// If Kafka is not available, return nil service (graceful degradation)
-		log.Printf("Kafka not available, analytics will be disabled: %v", err)
-		return nil, nil
+func NewKafkaService(brokerURL string) *KafkaService {
+	writer := &kafka.Writer{
+		Addr:         kafka.TCP(brokerURL),
+		Topic:        "game-analytics",
+		Balancer:     &kafka.LeastBytes{},
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  10 * time.Second,
 	}
 
 	return &KafkaService{
-		producer: producer,
-		topic:    topic,
-	}, nil
+		writer: writer,
+	}
 }
 
-func (k *KafkaService) PublishEvent(eventType string, data map[string]interface{}) {
-	if k == nil || k.producer == nil {
-		return // Graceful degradation when Kafka is not available
-	}
-
-	event := AnalyticsEvent{
-		Type:      eventType,
-		Data:      data,
-		Timestamp: time.Now(),
-	}
-
-	eventBytes, err := json.Marshal(event)
+func (k *KafkaService) PublishEvent(event AnalyticsEvent) error {
+	eventJSON, err := json.Marshal(event)
 	if err != nil {
-		log.Printf("Failed to marshal analytics event: %v", err)
-		return
+		return err
 	}
 
-	message := &sarama.ProducerMessage{
-		Topic: k.topic,
-		Value: sarama.StringEncoder(eventBytes),
+	gameID := ""
+	if gid, ok := event.Data["gameId"].(string); ok {
+		gameID = gid
 	}
 
-	_, _, err = k.producer.SendMessage(message)
-	if err != nil {
-		log.Printf("Failed to send analytics event: %v", err)
+	message := kafka.Message{
+		Key:   []byte(gameID),
+		Value: eventJSON,
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return k.writer.WriteMessages(ctx, message)
+}
+
+func (k *KafkaService) StartConsumer(processor func(AnalyticsEvent)) {
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:  []string{k.writer.Addr.String()},
+		Topic:    "game-analytics",
+		GroupID:  "analytics-consumer",
+		MinBytes: 10e3,
+		MaxBytes: 10e6,
+	})
+
+	go func() {
+		defer reader.Close()
+		for {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			message, err := reader.ReadMessage(ctx)
+			cancel()
+
+			if err != nil {
+				log.Printf("Kafka consumer error: %v", err)
+				continue
+			}
+
+			var event AnalyticsEvent
+			if err := json.Unmarshal(message.Value, &event); err != nil {
+				log.Printf("Failed to unmarshal event: %v", err)
+				continue
+			}
+
+			processor(event)
+		}
+	}()
 }
 
 func (k *KafkaService) Close() {
-	if k != nil && k.producer != nil {
-		k.producer.Close()
+	if k.writer != nil {
+		k.writer.Close()
 	}
 }
