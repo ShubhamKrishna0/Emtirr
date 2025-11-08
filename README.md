@@ -19,12 +19,65 @@ A professional Connect Four game with real-time multiplayer, competitive AI bot,
 ## 🎯 Features
 
 ✅ **Real-time Multiplayer** - WebSocket-based gameplay  
-✅ **AI Bot Integration** - Smart bot joins after 10 seconds  
+✅ **Advanced AI Bot** - Competitive bot with sophisticated algorithms  
 ✅ **Reconnection System** - 30-second grace period  
 ✅ **PostgreSQL Persistence** - Game history & leaderboard  
 ✅ **Redis Analytics** - Real-time event streaming  
 ✅ **Live Metrics** - Game duration, win rates, player stats  
-✅ **Production Ready** - Deployed on Render with full scaling  
+✅ **Production Ready** - Deployed on Render with full scaling
+
+## 🤖 AI Bot Algorithm
+
+### **Core Algorithm: Enhanced Minimax with Alpha-Beta Pruning**
+- **Algorithm Type**: Adversarial search with game tree exploration
+- **Search Depth**: Adaptive (8-15 moves deep based on game phase)
+- **Optimization**: Alpha-beta pruning for efficient tree traversal
+
+### **Advanced Techniques**
+| Technique | Purpose | Impact |
+|-----------|---------|--------|
+| **Transposition Tables** | Cache evaluated positions | 3x faster search |
+| **Iterative Deepening** | Progressive depth increase | Always has best move ready |
+| **Move Ordering** | Search best moves first | Better pruning efficiency |
+| **Threat Analysis** | Detect multiple simultaneous threats | Creates winning combinations |
+| **Position Evaluation** | Advanced board scoring | Strategic understanding |
+
+### **Bot Response Strategy**
+```
+1. IMMEDIATE WIN CHECK
+   ├─ Scan all columns for 4-in-a-row completion
+   └─ Return winning move instantly
+
+2. THREAT BLOCKING
+   ├─ Detect opponent's winning threats
+   └─ Block critical positions
+
+3. TACTICAL ANALYSIS
+   ├─ Fork Creation: Setup multiple threats
+   ├─ Center Control: Prioritize columns 2,3,4
+   └─ Trap Avoidance: Prevent opponent setups
+
+4. MINIMAX SEARCH (Depth 8-15)
+   ├─ Generate all possible moves
+   ├─ Evaluate positions using:
+   │   ├─ Connection patterns (2,3,4 in a row)
+   │   ├─ Positional advantage (center control)
+   │   ├─ Threat potential (future winning moves)
+   │   └─ Column control (piece dominance)
+   ├─ Alpha-beta pruning for efficiency
+   └─ Return highest scoring move
+
+5. STRATEGIC FALLBACK
+   └─ Center-preference with slight randomness
+```
+
+### **Evaluation Function Components**
+- **Immediate Wins/Losses**: ±100,000 points
+- **3-in-a-row Threats**: ±500 points  
+- **2-in-a-row Setups**: ±50 points
+- **Center Control**: +8 points per piece
+- **Position Height**: Higher pieces worth more
+- **Column Dominance**: Control scoring bonus  
 
 ## 🏗️ Tech Stack
 
@@ -192,7 +245,9 @@ npm start                # Development server
 | Feature | Technology | Status |
 |---------|------------|--------|
 | ⚡ **Real-time Multiplayer** | WebSocket + Go | ✅ Complete |
-| 🤖 **AI Bot Integration** | Minimax Algorithm | ✅ Complete |
+| 🤖 **Advanced AI Bot** | Enhanced Minimax + Alpha-Beta | ✅ Complete |
+| 🧠 **Transposition Tables** | Hash-based Position Caching | ✅ Complete |
+| 🎯 **Iterative Deepening** | Progressive Search (8-15 depth) | ✅ Complete |
 | 🗄️ **Database Persistence** | PostgreSQL | ✅ Complete |
 | 📊 **Analytics System** | Kafka/Redis Streaming | ✅ Complete |
 | ☁️ **Production Deployment** | Render Cloud | ✅ Live |

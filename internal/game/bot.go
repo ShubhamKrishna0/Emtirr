@@ -3,47 +3,60 @@ package game
 import (
 	"emitrr-4-in-a-row/internal/models"
 	"math"
+	"math/rand"
+	"sort"
+	"time"
 )
 
 type Bot struct {
 	ID       string
 	Username string
 	IsBot    bool
+	transTable map[uint64]TransEntry
+}
+
+type TransEntry struct {
+	Score float64
+	Depth int
+	Flag  int // 0=exact, 1=lower, 2=upper
 }
 
 func NewBot() *Bot {
 	return &Bot{
-		ID:       "bot",
-		Username: "AI Bot",
-		IsBot:    true,
+		ID:         "bot",
+		Username:   "AI Bot",
+		IsBot:      true,
+		transTable: make(map[uint64]TransEntry),
 	}
 }
 
 func (b *Bot) GetBestMove(game *models.Game) int {
-	// First check for valid moves
 	validMoves := b.getValidMoves(game.Board)
 	if len(validMoves) == 0 {
-		return -1 // No valid moves
+		return -1
 	}
 
-	// Check for immediate tactical moves first
-	if immediateMove := b.GetImmediateMove(game); immediateMove != nil {
-		return *immediateMove
+	// Immediate tactical moves (win/block)
+	if move := b.GetImmediateMove(game); move != nil {
+		return *move
 	}
 
-	// Adaptive depth based on game state
+	// Advanced threat analysis
+	if move := b.analyzeThreats(game.Board); move != -1 {
+		return move
+	}
+
+	// Iterative deepening with time limit
 	depth := b.getOptimalDepth(game.Board)
-	result := b.minimax(game.Board, depth, math.Inf(-1), math.Inf(1), true)
+	result := b.iterativeDeepening(game.Board, depth, 2*time.Second)
 	
-	// Validate the result
-	for _, validCol := range validMoves {
-		if result.Column == validCol {
+	for _, col := range validMoves {
+		if result.Column == col {
 			return result.Column
 		}
 	}
 	
-	// Fallback to first valid move
-	return validMoves[0]
+	return b.selectStrategicMove(game.Board, validMoves)
 }
 
 func (b *Bot) getOptimalDepth(board [][]int) int {
@@ -56,14 +69,117 @@ func (b *Bot) getOptimalDepth(board [][]int) int {
 		}
 	}
 	
-	// Deeper search when fewer pieces on board
 	if emptySpaces > 35 {
-		return 7 // Early game - deeper search
+		return 8
 	} else if emptySpaces > 20 {
-		return 8 // Mid game - deepest search
+		return 10
+	} else if emptySpaces > 10 {
+		return 12
 	} else {
-		return 9 // End game - maximum depth
+		return 15 // Endgame - solve completely
 	}
+}
+
+func (b *Bot) iterativeDeepening(board [][]int, maxDepth int, timeLimit time.Duration) MinimaxResult {
+	start := time.Now()
+	var bestResult MinimaxResult
+	
+	for depth := 1; depth <= maxDepth; depth++ {
+		if time.Since(start) > timeLimit {
+			break
+		}
+		
+		result := b.minimax(board, depth, math.Inf(-1), math.Inf(1), true)
+		bestResult = result
+		
+		// If we found a winning move, return immediately
+		if result.Score >= 10000 {
+			break
+		}
+	}
+	
+	return bestResult
+}
+
+func (b *Bot) analyzeThreats(board [][]int) int {
+	// Look for fork opportunities (multiple threats)
+	bestScore := -1.0
+	bestMove := -1
+	
+	for col := 0; col < 7; col++ {
+		if board[0][col] != 0 {
+			continue
+		}
+		
+		testBoard := b.makeMove(board, col, 2)
+		threats := b.countAdvancedThreats(testBoard, 2)
+		defensiveValue := b.evaluateDefensivePosition(testBoard, col)
+		
+		score := float64(threats)*100 + defensiveValue
+		
+		if score > bestScore {
+			bestScore = score
+			bestMove = col
+		}
+	}
+	
+	if bestScore > 150 { // Threshold for strong tactical move
+		return bestMove
+	}
+	return -1
+}
+
+func (b *Bot) countAdvancedThreats(board [][]int, player int) int {
+	threats := 0
+	for col := 0; col < 7; col++ {
+		if board[0][col] == 0 {
+			testBoard := b.makeMove(board, col, player)
+			if b.checkWinInBoard(testBoard, col, player) {
+				threats++
+			}
+		}
+	}
+	return threats
+}
+
+func (b *Bot) evaluateDefensivePosition(board [][]int, col int) float64 {
+	score := 0.0
+	
+	// Check if this move blocks opponent threats
+	testBoard := b.makeMove(board, col, 1) // Simulate opponent move
+	if b.checkWinInBoard(testBoard, col, 1) {
+		score += 200 // High value for blocking
+	}
+	
+	// Check for trap setups (moves that create unavoidable threats)
+	for nextCol := 0; nextCol < 7; nextCol++ {
+		if board[0][nextCol] == 0 && nextCol != col {
+			nextBoard := b.makeMove(board, nextCol, 2)
+			if b.countAdvancedThreats(nextBoard, 2) >= 2 {
+				score += 50
+			}
+		}
+	}
+	
+	return score
+}
+
+func (b *Bot) selectStrategicMove(board [][]int, validMoves []int) int {
+	// Prioritize center columns with some randomness
+	centerPreference := []int{3, 2, 4, 1, 5, 0, 6}
+	
+	for _, col := range centerPreference {
+		for _, valid := range validMoves {
+			if col == valid {
+				// Add slight randomness to avoid predictability
+				if rand.Float64() < 0.8 {
+					return col
+				}
+			}
+		}
+	}
+	
+	return validMoves[rand.Intn(len(validMoves))]
 }
 
 type MinimaxResult struct {
@@ -72,9 +188,16 @@ type MinimaxResult struct {
 }
 
 func (b *Bot) minimax(board [][]int, depth int, alpha, beta float64, isMaximizing bool) MinimaxResult {
-	score := b.evaluateBoard(board)
+	// Transposition table lookup
+	hash := b.hashBoard(board)
+	if entry, exists := b.transTable[hash]; exists && entry.Depth >= depth {
+		if entry.Flag == 0 || (entry.Flag == 1 && entry.Score >= beta) || (entry.Flag == 2 && entry.Score <= alpha) {
+			return MinimaxResult{Score: entry.Score, Column: -1}
+		}
+	}
 
-	if depth == 0 || math.Abs(score) >= 1000 || b.isBoardFull(board) {
+	score := b.evaluateBoard(board)
+	if depth == 0 || math.Abs(score) >= 10000 || b.isBoardFull(board) {
 		return MinimaxResult{Score: score, Column: -1}
 	}
 
@@ -82,12 +205,15 @@ func (b *Bot) minimax(board [][]int, depth int, alpha, beta float64, isMaximizin
 	if len(validMoves) == 0 {
 		return MinimaxResult{Score: score, Column: -1}
 	}
-	bestColumn := validMoves[0]
+
+	// Move ordering for better pruning
+	orderedMoves := b.orderMoves(board, validMoves, isMaximizing)
+	bestColumn := orderedMoves[0]
+	originalAlpha := alpha
 
 	if isMaximizing {
 		maxScore := math.Inf(-1)
-
-		for _, col := range validMoves {
+		for _, col := range orderedMoves {
 			newBoard := b.makeMove(board, col, 2)
 			result := b.minimax(newBoard, depth-1, alpha, beta, false)
 
@@ -98,15 +224,23 @@ func (b *Bot) minimax(board [][]int, depth int, alpha, beta float64, isMaximizin
 
 			alpha = math.Max(alpha, result.Score)
 			if beta <= alpha {
-				break
+				break // Beta cutoff
 			}
 		}
+
+		// Store in transposition table
+		flag := 0
+		if maxScore <= originalAlpha {
+			flag = 2 // Upper bound
+		} else if maxScore >= beta {
+			flag = 1 // Lower bound
+		}
+		b.transTable[hash] = TransEntry{Score: maxScore, Depth: depth, Flag: flag}
 
 		return MinimaxResult{Score: maxScore, Column: bestColumn}
 	} else {
 		minScore := math.Inf(1)
-
-		for _, col := range validMoves {
+		for _, col := range orderedMoves {
 			newBoard := b.makeMove(board, col, 1)
 			result := b.minimax(newBoard, depth-1, alpha, beta, true)
 
@@ -117,100 +251,172 @@ func (b *Bot) minimax(board [][]int, depth int, alpha, beta float64, isMaximizin
 
 			beta = math.Min(beta, result.Score)
 			if beta <= alpha {
-				break
+				break // Alpha cutoff
 			}
 		}
+
+		// Store in transposition table
+		flag := 0
+		if minScore <= originalAlpha {
+			flag = 2
+		} else if minScore >= beta {
+			flag = 1
+		}
+		b.transTable[hash] = TransEntry{Score: minScore, Depth: depth, Flag: flag}
 
 		return MinimaxResult{Score: minScore, Column: bestColumn}
 	}
 }
 
+func (b *Bot) hashBoard(board [][]int) uint64 {
+	var hash uint64 = 0
+	for i := 0; i < 6; i++ {
+		for j := 0; j < 7; j++ {
+			hash = hash*3 + uint64(board[i][j])
+		}
+	}
+	return hash
+}
+
+func (b *Bot) orderMoves(board [][]int, moves []int, isMaximizing bool) []int {
+	type moveScore struct {
+		col   int
+		score float64
+	}
+	
+	scores := make([]moveScore, len(moves))
+	for i, col := range moves {
+		player := 2
+		if !isMaximizing {
+			player = 1
+		}
+		testBoard := b.makeMove(board, col, player)
+		score := b.evaluateBoard(testBoard)
+		
+		// Prioritize center columns
+		if col == 3 {
+			score += 10
+		} else if col == 2 || col == 4 {
+			score += 5
+		}
+		
+		scores[i] = moveScore{col: col, score: score}
+	}
+	
+	// Sort by score (descending for maximizing, ascending for minimizing)
+	sort.Slice(scores, func(i, j int) bool {
+		if isMaximizing {
+			return scores[i].score > scores[j].score
+		}
+		return scores[i].score < scores[j].score
+	})
+	
+	orderedMoves := make([]int, len(moves))
+	for i, ms := range scores {
+		orderedMoves[i] = ms.col
+	}
+	return orderedMoves
+}
+
 func (b *Bot) evaluateBoard(board [][]int) float64 {
 	score := 0.0
 
-	// Strong center column preference (most important)
-	centerCol := 3
-	for row := 0; row < 6; row++ {
-		if board[row][centerCol] == 2 {
-			score += 6 // Doubled importance
+	// Check for immediate wins/losses
+	if winner := b.checkBoardWinner(board); winner != 0 {
+		if winner == 2 {
+			return 100000
 		}
-		if board[row][centerCol] == 1 {
-			score -= 6
-		}
+		return -100000
 	}
 
-	// Adjacent center columns also valuable
-	for row := 0; row < 6; row++ {
-		if board[row][2] == 2 || board[row][4] == 2 {
-			score += 4
-		}
-		if board[row][2] == 1 || board[row][4] == 1 {
-			score -= 4
-		}
-	}
-
-	// Evaluate all windows with enhanced scoring
-	score += b.evaluateWindows(board, 2) - b.evaluateWindows(board, 1)
-	
-	// Penalize edge columns heavily
-	for row := 0; row < 6; row++ {
-		if board[row][0] == 2 || board[row][6] == 2 {
-			score -= 2
-		}
-	}
+	// Advanced positional evaluation
+	score += b.evaluatePositionalAdvantage(board)
+	score += b.evaluateConnections(board, 2) - b.evaluateConnections(board, 1)
+	score += b.evaluateThreatPotential(board)
+	score += b.evaluateControlledColumns(board)
 
 	return score
 }
 
-func (b *Bot) evaluateWindows(board [][]int, player int) float64 {
+func (b *Bot) evaluatePositionalAdvantage(board [][]int) float64 {
 	score := 0.0
+	
+	// Center control is crucial
+	for row := 0; row < 6; row++ {
+		if board[row][3] == 2 {
+			score += 8.0 * float64(6-row) // Higher pieces worth more
+		} else if board[row][3] == 1 {
+			score -= 8.0 * float64(6-row)
+		}
+	}
+	
+	// Adjacent center columns
+	for row := 0; row < 6; row++ {
+		for _, col := range []int{2, 4} {
+			if board[row][col] == 2 {
+				score += 5.0 * float64(6-row)
+			} else if board[row][col] == 1 {
+				score -= 5.0 * float64(6-row)
+			}
+		}
+	}
+	
+	// Penalize edge columns
+	for row := 0; row < 6; row++ {
+		for _, col := range []int{0, 6} {
+			if board[row][col] == 2 {
+				score -= 3.0
+			} else if board[row][col] == 1 {
+				score += 1.0 // Slightly good to force opponent to edges
+			}
+		}
+	}
+	
+	return score
+}
 
-	// Horizontal windows
+func (b *Bot) evaluateConnections(board [][]int, player int) float64 {
+	score := 0.0
+	
+	// Horizontal connections
 	for row := 0; row < 6; row++ {
 		for col := 0; col < 4; col++ {
 			window := []int{board[row][col], board[row][col+1], board[row][col+2], board[row][col+3]}
-			score += b.scoreWindow(window, player)
+			score += b.scoreAdvancedWindow(window, player, "horizontal")
 		}
 	}
-
-	// Vertical windows
+	
+	// Vertical connections
 	for col := 0; col < 7; col++ {
 		for row := 0; row < 3; row++ {
 			window := []int{board[row][col], board[row+1][col], board[row+2][col], board[row+3][col]}
-			score += b.scoreWindow(window, player)
+			score += b.scoreAdvancedWindow(window, player, "vertical")
 		}
 	}
-
-	// Diagonal windows (positive slope)
+	
+	// Diagonal connections
 	for row := 0; row < 3; row++ {
 		for col := 0; col < 4; col++ {
-			window := []int{board[row][col], board[row+1][col+1], board[row+2][col+2], board[row+3][col+3]}
-			score += b.scoreWindow(window, player)
+			window1 := []int{board[row][col], board[row+1][col+1], board[row+2][col+2], board[row+3][col+3]}
+			score += b.scoreAdvancedWindow(window1, player, "diagonal")
 		}
-	}
-
-	// Diagonal windows (negative slope)
-	for row := 0; row < 3; row++ {
 		for col := 3; col < 7; col++ {
-			window := []int{board[row][col], board[row+1][col-1], board[row+2][col-2], board[row+3][col-3]}
-			score += b.scoreWindow(window, player)
+			window2 := []int{board[row][col], board[row+1][col-1], board[row+2][col-2], board[row+3][col-3]}
+			score += b.scoreAdvancedWindow(window2, player, "diagonal")
 		}
 	}
-
+	
 	return score
 }
 
-func (b *Bot) scoreWindow(window []int, player int) float64 {
+func (b *Bot) scoreAdvancedWindow(window []int, player int, direction string) float64 {
 	score := 0.0
-	opponent := 1
-	if player == 1 {
-		opponent = 2
-	}
-
+	opponent := 3 - player
+	
 	playerCount := 0
 	opponentCount := 0
 	emptyCount := 0
-
+	
 	for _, cell := range window {
 		if cell == player {
 			playerCount++
@@ -220,29 +426,133 @@ func (b *Bot) scoreWindow(window []int, player int) float64 {
 			emptyCount++
 		}
 	}
-
-	// Winning positions
-	if playerCount == 4 {
-		score += 10000 // Massive win bonus
-	} else if playerCount == 3 && emptyCount == 1 {
-		score += 500 // Strong threat
-	} else if playerCount == 2 && emptyCount == 2 {
-		score += 50 // Good position
-	} else if playerCount == 1 && emptyCount == 3 {
-		score += 5 // Potential
+	
+	// Can't form 4 in a row if opponent has pieces
+	if opponentCount > 0 {
+		return 0
 	}
-
-	// Defensive positions - CRITICAL
-	if opponentCount == 4 {
-		score -= 10000 // Prevent loss
-	} else if opponentCount == 3 && emptyCount == 1 {
-		score -= 1000 // MUST block
-	} else if opponentCount == 2 && emptyCount == 2 {
-		score -= 100 // Block potential threat
+	
+	// Scoring based on potential
+	switch playerCount {
+	case 4:
+		score = 10000
+	case 3:
+		score = 500
+		if direction == "vertical" {
+			score *= 1.5 // Vertical threats are stronger
+		}
+	case 2:
+		score = 50
+		if direction == "horizontal" && emptyCount == 2 {
+			score *= 1.2 // Open-ended horizontals are valuable
+		}
+	case 1:
+		score = 5
 	}
-
+	
 	return score
 }
+
+func (b *Bot) evaluateThreatPotential(board [][]int) float64 {
+	score := 0.0
+	
+	// Count potential threats for both players
+	botThreats := b.countPotentialThreats(board, 2)
+	oppThreats := b.countPotentialThreats(board, 1)
+	
+	score += float64(botThreats)*20 - float64(oppThreats)*25
+	
+	return score
+}
+
+func (b *Bot) countPotentialThreats(board [][]int, player int) int {
+	threats := 0
+	for col := 0; col < 7; col++ {
+		if board[0][col] == 0 {
+			testBoard := b.makeMove(board, col, player)
+			if b.checkWinInBoard(testBoard, col, player) {
+				threats++
+			}
+		}
+	}
+	return threats
+}
+
+func (b *Bot) evaluateControlledColumns(board [][]int) float64 {
+	score := 0.0
+	
+	for col := 0; col < 7; col++ {
+		botControl := 0
+		oppControl := 0
+		
+		for row := 5; row >= 0; row-- {
+			if board[row][col] == 2 {
+				botControl++
+			} else if board[row][col] == 1 {
+				oppControl++
+			} else {
+				break // Empty space, stop counting
+			}
+		}
+		
+		if botControl > oppControl {
+			score += float64(botControl-oppControl) * 3
+		} else if oppControl > botControl {
+			score -= float64(oppControl-botControl) * 3
+		}
+	}
+	
+	return score
+}
+
+func (b *Bot) checkBoardWinner(board [][]int) int {
+	for row := 0; row < 6; row++ {
+		for col := 0; col < 7; col++ {
+			if board[row][col] != 0 {
+				if b.checkWinFromPosition(board, row, col, board[row][col]) {
+					return board[row][col]
+				}
+			}
+		}
+	}
+	return 0
+}
+
+func (b *Bot) checkWinFromPosition(board [][]int, row, col, player int) bool {
+	directions := [][]int{{0, 1}, {1, 0}, {1, 1}, {1, -1}}
+	
+	for _, dir := range directions {
+		count := 1
+		dr, dc := dir[0], dir[1]
+		
+		// Check positive direction
+		for i := 1; i < 4; i++ {
+			nr, nc := row+dr*i, col+dc*i
+			if nr >= 0 && nr < 6 && nc >= 0 && nc < 7 && board[nr][nc] == player {
+				count++
+			} else {
+				break
+			}
+		}
+		
+		// Check negative direction
+		for i := 1; i < 4; i++ {
+			nr, nc := row-dr*i, col-dc*i
+			if nr >= 0 && nr < 6 && nc >= 0 && nc < 7 && board[nr][nc] == player {
+				count++
+			} else {
+				break
+			}
+		}
+		
+		if count >= 4 {
+			return true
+		}
+	}
+	return false
+}
+
+
 
 func (b *Bot) getValidMoves(board [][]int) []int {
 	var validMoves []int
@@ -283,7 +593,7 @@ func (b *Bot) isBoardFull(board [][]int) bool {
 func (b *Bot) GetImmediateMove(game *models.Game) *int {
 	board := game.Board
 
-	// 1. Check for immediate winning move (HIGHEST PRIORITY)
+	// 1. Immediate win
 	for col := 0; col < 7; col++ {
 		if board[0][col] == 0 {
 			testBoard := b.makeMove(board, col, 2)
@@ -293,7 +603,7 @@ func (b *Bot) GetImmediateMove(game *models.Game) *int {
 		}
 	}
 
-	// 2. Check for blocking opponent's winning move (CRITICAL)
+	// 2. Block opponent win
 	for col := 0; col < 7; col++ {
 		if board[0][col] == 0 {
 			testBoard := b.makeMove(board, col, 1)
@@ -303,22 +613,14 @@ func (b *Bot) GetImmediateMove(game *models.Game) *int {
 		}
 	}
 
-	// 3. Check for creating double threats (ADVANCED)
+	// 3. Create multiple threats
 	for col := 0; col < 7; col++ {
 		if board[0][col] == 0 {
 			testBoard := b.makeMove(board, col, 2)
 			threats := b.countThreats(testBoard, 2)
 			if threats >= 2 {
-				return &col // Create multiple winning opportunities
+				return &col
 			}
-		}
-	}
-
-	// 4. Prefer center columns for strategic advantage
-	centerCols := []int{3, 2, 4, 1, 5, 0, 6}
-	for _, col := range centerCols {
-		if board[0][col] == 0 {
-			return &col
 		}
 	}
 
@@ -350,36 +652,6 @@ func (b *Bot) checkWinInBoard(board [][]int, col, player int) bool {
 	if row == -1 {
 		return false
 	}
-// det
-	directions := [][]int{{0, 1}, {1, 0}, {1, 1}, {1, -1}}
 
-	for _, dir := range directions {
-		count := 1
-		dr, dc := dir[0], dir[1]
-
-		for i := 1; i < 4; i++ {
-			newRow, newCol := row+dr*i, col+dc*i
-			if newRow >= 0 && newRow < 6 && newCol >= 0 && newCol < 7 &&
-				board[newRow][newCol] == player {
-				count++
-			} else {
-				break
-			}
-		}
-
-		for i := 1; i < 4; i++ {
-			newRow, newCol := row-dr*i, col-dc*i
-			if newRow >= 0 && newRow < 6 && newCol >= 0 && newCol < 7 &&
-				board[newRow][newCol] == player {
-				count++
-			} else {
-				break
-			}
-		}
-
-		if count >= 4 {
-			return true
-		}
-	}
-	return false
+	return b.checkWinFromPosition(board, row, col, player)
 }

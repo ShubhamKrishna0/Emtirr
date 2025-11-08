@@ -27,7 +27,7 @@ services:
     environment:
       POSTGRES_DB: four_in_a_row
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: Shubham@123
     ports:
       - "5432:5432"
     volumes:
